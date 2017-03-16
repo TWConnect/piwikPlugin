@@ -3,6 +3,7 @@
     	"PaceTimeOnSearchResult": "Pace Time On Search Result",
         "PaceTimeOnSearchResultTendency": "Pace Time On Search Result Tendency",
         "PaceTimeOnSearchResultTendencyDocument": "This graphic shows the average of “Pace Time on Search Result Content” on every date/week/month in a dateRange.",
+        "RepeatingSearch": "Repeating Search",
         "RepeatingSearchRate": "Repeating Search Rate (%)",
         "BounceSearchRate": "Search Bounce Rate (%)",
         "BounceSearchCount": "Search Bounce Count",

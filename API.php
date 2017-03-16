@@ -151,12 +151,10 @@ class API extends \Piwik\Plugin\API
             foreach ($detail as $action) {
                 if ($action['type'] == 'event' && $action['eventCategory'] == 'searchResult') {
                     $isResult[] = $action['eventName'];
-                    echo "****URL is " . $action['eventName'] . "<br> ****And keyword is " . $action['eventAction'] . "<br>";
                 }
                 $key = array_search($action['url'], $isResult);
                 if ($action['type'] == 'action' && $key !== FALSE) {
                     $visitTime = $action['timeSpent'];
-                    echo "time on page is : $visitTime<br>And URL is " . $action['url'] . "<br>";
                     $metatable->addRowFromArray(array(Row::COLUMNS => array('avg_time_on_page' => $visitTime)));
                     unset($isResult[$key]);
                 }
@@ -246,7 +244,7 @@ class API extends \Piwik\Plugin\API
                     } else {
                         $timeInterval = $detail[$index]['timestamp'] - $previousSearchTimeStamp;
 
-                        if ($timeInterval <= 180 && ($detail[$index]['timestamp'] - $previousSearchTimeStamp) > 0) {
+                        if ($timeInterval <= 180 && ($detail[$index]['timestamp'] - $previousSearchTimeStamp) >= 0) {
                             $repeatSearchTimes++; //within specific time range, another repeat search
                         } else {
                             $repeatSearchRecords = $this->addRepeatSearchTimes($repeatSearchTimes, $repeatSearchRecords);
@@ -335,24 +333,22 @@ class API extends \Piwik\Plugin\API
         $totalSearchCount = 0;
         foreach ($data as $row) {
             $detail = $row->getColumn('actionDetails');
-            echo 'count($detail)' . count($detail) . '<br />';
             for ($index = 0; $index < count($detail); ++$index) {
                 if ($detail[$index]['type'] == 'search') {
                     $totalSearchCount++;
                     $nextIndex = $index + 1;
                     if($index == count($detail) - 1){
-                        echo 'last search item' . ' <br />';
                         $bouncedSearchCount++;
-                    }elseif ($detail[$nextIndex]['type'] !== 'event' && $detail[$nextIndex]['timestamp'] > $detail[$index]['timestamp']){
-                        echo 'bounce search' . '<br />';
-                        $bouncedSearchCount++;
+                    }else {
+                        if($detail[$nextIndex]['type'] !== 'event') {
+                            $bouncedSearchCount++;
+                        }elseif($detail[$nextIndex]['eventCategory'] !== 'searchResult'){
+                            $bouncedSearchCount++;
+                        }
                     }
                 }
             }
         }
-
-        echo 'bounced search count = ' . $bouncedSearchCount . '<br />';
-        echo 'total search count = ' . $totalSearchCount . ' <br />';
 
         return array($bouncedSearchCount, $totalSearchCount);
     }
@@ -381,7 +377,6 @@ class API extends \Piwik\Plugin\API
         $metatable = new DataTable();
 
         foreach ($dateArray as $day) {
-            echo 'day = ' . $day . '<br />';
             list($bouncedSearchCount, $totalSearchCount) = $this->getBounceSearchInfo($idSite, $period, $date, $segment, $day);
 
             $metatable->addRowFromArray(array(Row::COLUMNS => array(
@@ -461,12 +456,7 @@ class API extends \Piwik\Plugin\API
      */
     public function getSearchKeywords($idSite, $period, $date, $segment = false)
     {
-        return \Piwik\API\Request::processRequest('Actions.getSiteSearchKeywords', array(
-            'idSite' => $idSite,
-            'period' => $period,
-            'date' => $date,
-            'segment' => $segment
-        ));
+        return \Piwik\Plugins\Actions\API::getInstance()->getSiteSearchKeywords($idSite, $period, $date, $segment);
     }
 
 }

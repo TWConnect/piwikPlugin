@@ -21,7 +21,8 @@ use Piwik\Plugins\MyThoughtWorks\Columns\DateDimension;
  */
 class GetBounceSearchRate extends Base
 {
-    public function getDefaultTypeViewDataTable(){
+    public function getDefaultTypeViewDataTable()
+    {
         return Evolution::ID;
     }
 
@@ -43,7 +44,7 @@ class GetBounceSearchRate extends Base
                 'bounce_search_rate' => Piwik::translate('MyThoughtWorks_BounceSearchRate')));
         }
 
-        $view->requestConfig->disable_generic_filters=true;
+        $view->requestConfig->disable_generic_filters = true;
         $view->config->disable_row_evolution = true;
         $view->config->hide_annotations_view = true;
         $view->config->show_series_picker = false;

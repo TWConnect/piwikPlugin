@@ -2,8 +2,14 @@
 <div id='MyTWGetKeywordRelatedInfo'>
 
     {% import "ajaxMacros.twig" as ajax %}
-    {{ ajax.LoadingDiv('ajaxLoadingMyTWKeywords') }}
 
+    <div>
+        <p>
+            All keywords searched by user show in left list.<br>
+            When you click a keyword in list, it will show the related info in right table, contains top ten content/people/group info.<br>
+            And can filter search result by role or region thought choosing in "ALL VISITS" menu.
+        </p>
+    </div>
     <div class="content">
         <div id="keyword-list">
 

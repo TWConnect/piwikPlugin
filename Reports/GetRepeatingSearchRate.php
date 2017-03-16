@@ -10,9 +10,7 @@ namespace Piwik\Plugins\MyThoughtWorks\Reports;
 
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
-use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Evolution;
-use Piwik\Plugins\MyThoughtWorks\Columns\DateDimension;
-use Piwik\Plugins\MyThoughtWorks\Columns\Metrics\RepeatingRate;
+use Piwik\View;
 
 
 /**
@@ -22,14 +20,14 @@ use Piwik\Plugins\MyThoughtWorks\Columns\Metrics\RepeatingRate;
  */
 class GetRepeatingSearchRate extends Base
 {
-    public function getDefaultTypeViewDataTable(){
-        return Evolution::ID;
-    }
-
-    public function alwaysUseDefaultViewDataTable()
-    {
-        return true;
-    }
+//    public function getDefaultTypeViewDataTable(){
+//        return Evolution::ID;
+//    }
+//
+//    public function alwaysUseDefaultViewDataTable()
+//    {
+//        return true;
+//    }
 
     /**
      * Here you can configure how your report should be displayed. For instance whether your report supports a search
@@ -41,17 +39,18 @@ class GetRepeatingSearchRate extends Base
     {
         if (!empty($this->dimension)) {
             $view->config->addTranslations(array('label' => $this->dimension->getName(),
-                'repeating_rate' => Piwik::translate('MyThoughtWorks_Percentage'),
-                'repeating_search_count' => Piwik::translate('MyThoughtWorks_RepeatingSearchCount'),
-                'total_search_count' => Piwik::translate('MyThoughtWorks_TotalSearchCount'),
-                'bounce_rate' => 'NbVisitsBounced',));
+//                'repeating_rate' => Piwik::translate('MyThoughtWorks_Percentage'),
+//                'repeating_search_count' => Piwik::translate('MyThoughtWorks_RepeatingSearchCount'),
+//                'total_search_count' => Piwik::translate('MyThoughtWorks_TotalSearchCount'),
+//                'bounce_rate' => 'NbVisitsBounced'
+            ));
         }
 
-        $view->requestConfig->disable_generic_filters=true;
-        $view->config->disable_row_evolution = true;
-        $view->config->hide_annotations_view = true;
-        $view->config->show_series_picker = false;
-        $view->config->columns_to_display = array_merge(array('label'), $this->metrics);
+//        $view->requestConfig->disable_generic_filters=true;
+//        $view->config->disable_row_evolution = true;
+//        $view->config->hide_annotations_view = true;
+//        $view->config->show_series_picker = false;
+//        $view->config->columns_to_display = array_merge(array('label'), $this->metrics);
     }
 
     /**
@@ -63,33 +62,6 @@ class GetRepeatingSearchRate extends Base
     public function getRelatedReports()
     {
         return array(); // eg return array(new XyzReport());
-    }
-
-    protected function init()
-    {
-        parent::init();
-
-        $this->name = Piwik::translate('MyThoughtWorks_RepeatingSearchRate');
-        $this->dimension = new DateDimension();
-        $this->processedMetrics = array(
-            new RepeatingRate()
-        );
-        $this->documentation = Piwik::translate('MyThoughtWorks_RepeatingSearchRateDocument') . '<br /><br />'
-            . '<b>Repeating Search Rate = </b>' . Piwik::translate('MyThoughtWorks_RepeatingSearchRateCalculate') . '<br />'
-//            . '<b>Total Search Amount = </b>' . Piwik::translate('MyThoughtWorks_TotalSearchAmountCalculate') . '<br /><br />'
-//            . '<b>Repeating Search: </b>' . Piwik::translate('MyThoughtWorks_RepeatingSearchDocument') . '<br />'
-            . '<b>Success Search: </b>' . Piwik::translate('MyThoughtWorks_SuccessSearchDocument') . '<br />';
-
-        // This defines in which order your report appears in the mobile app, in the menu and in the list of widgets
-        $this->order = 3;
-
-        // By default standard metrics are defined but you can customize them by defining an array of metric names
-        $this->metrics = array(/*'repeating_search_count', 'total_search_count', 'bounce_rate', */
-            'repeating_rate');
-
-
-        // If a subcategory is specified, the report will be displayed in the menu under this menu item
-        $this->subcategoryId = Piwik::translate('MyThoughtWorks_PaceTimeOnSearchResult');
     }
 
     /**
@@ -107,6 +79,41 @@ class GetRepeatingSearchRate extends Base
      * return $view->render();
      * }
      */
+
+    public function render()
+    {
+        $view = new View('@MyThoughtWorks/GetRepeatingSearchRate');
+        $view->name = $this->name;
+        $view->doc = $this->documentation;
+        return $view->render();
+    }
+
+    protected function init()
+    {
+        parent::init();
+
+        $this->name = Piwik::translate('MyThoughtWorks_RepeatingSearchRate');
+        $this->dimension = null;
+//        $this->processedMetrics = array(
+//            new RepeatingRate()
+//        );
+        $this->documentation = Piwik::translate('MyThoughtWorks_RepeatingSearchRateDocument') . '<br /><br />'
+            . '<b>Repeating Search Rate = </b>' . Piwik::translate('MyThoughtWorks_RepeatingSearchRateCalculate') . '<br />'
+            . '<b>Total Search Amount = </b>' . Piwik::translate('MyThoughtWorks_TotalSearchAmountCalculate') . '<br /><br />'
+            . '<b>Repeating Search: </b>' . Piwik::translate('MyThoughtWorks_RepeatingSearchDocument') . '<br />'
+            . '<b>Success Search: </b>' . Piwik::translate('MyThoughtWorks_SuccessSearchDocument') . '<br />';
+
+        // This defines in which order your report appears in the mobile app, in the menu and in the list of widgets
+        $this->order = 3;
+
+        // By default standard metrics are defined but you can customize them by defining an array of metric names
+//        $this->metrics = array(/*'repeating_search_count', 'total_search_count', 'bounce_rate', */
+//            'repeating_rate');
+
+
+        // If a subcategory is specified, the report will be displayed in the menu under this menu item
+        $this->subcategoryId = Piwik::translate('MyThoughtWorks_RepeatingSearch');
+    }
 
     /**
      * By default your report is available to all users having at least view access. If you do not want this, you can

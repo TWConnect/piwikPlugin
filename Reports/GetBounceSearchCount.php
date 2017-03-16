@@ -40,10 +40,10 @@ class GetBounceSearchCount extends Base
     public function configureView(ViewDataTable $view)
     {
         if (!empty($this->dimension)) {
-            $view->config->addTranslations(array('label' => $this->dimension->getName(),                
+            $view->config->addTranslations(array('label' => $this->dimension->getName(),
                 'bounce_search_count' => Piwik::translate('MyThoughtWorks_BounceSearchCount'),
                 'total_search_count' => Piwik::translate('MyThoughtWorks_TotalSearchCount')
-                ));
+            ));
         }
 
         $view->requestConfig->disable_generic_filters = true;
