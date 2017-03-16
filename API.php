@@ -223,7 +223,7 @@ class API extends \Piwik\Plugin\API
      * @param $day
      * @return array
      */
-    private function getRepeatingSearchInfo($idSite, $period, $date, $segment, $day): array
+    private function getRepeatingSearchInfo($idSite, $period, $date, $segment, $day)
     {
         if (strpos($date, ',') !== false && $period == 'day') {
             $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
@@ -323,7 +323,7 @@ class API extends \Piwik\Plugin\API
      * @param $day
      * @return array
      */
-    private function getBounceSearchInfo($idSite, $period, $date, $segment, $day): array
+    private function getBounceSearchInfo($idSite, $period, $date, $segment, $day)
     {
         if (strpos($date, ',') !== false && $period == 'day') {
             $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
