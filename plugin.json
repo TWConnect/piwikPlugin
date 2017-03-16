@@ -1,10 +1,10 @@
 {
     "name": "MyThoughtWorks",
     "description": "Some custom reports which are related with search performance for MyThoughtWorks.",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "theme": false,
     "require": {
-        "piwik": ">=3.0.0,<4.0.0"
+        "piwik": ">=2.16.0,<3.0.0-b1"
     },
     "authors": [
         {
