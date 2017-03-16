@@ -1,7 +1,7 @@
 {
     "name": "SearchMonitor",
     "description": "Some custom reports which are related with search performance for MyThoughtWorks.",
-    "version": "0.2.5",
+    "version": "0.2.6",
     "theme": false,
     "require": {
         "piwik": ">=3.0.0,<4.0.0"
