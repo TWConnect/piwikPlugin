@@ -1,5 +1,5 @@
 {
-    "name": "myThoughtWorks",
+    "name": "SearchMonitor",
     "description": "Some custom reports which are related with search performance for MyThoughtWorks.",
     "version": "0.1.1",
     "theme": false,
@@ -25,5 +25,5 @@
     },
     "homepage": "",
     "license": "GPL v3+",
-    "keywords": ["MyThoughtWorks"]
+    "keywords": ["SearchMonitor"]
 }
