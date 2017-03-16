@@ -1,0 +1,29 @@
+{
+    "name": "MyThoughtWorks",
+    "description": "Some custom reports which are related with search performance for MyThoughtWorks.",
+    "version": "0.1.0",
+    "theme": false,
+    "require": {
+        "piwik": ">=3.0.1-stable,<4.0.0"
+    },
+    "authors": [
+        {
+            "name": "ThoughtWorks",
+            "email": "htao@thoughtworks.com",
+            "homepage": ""
+        }
+    ],
+    "support": {
+        "email": "htao@thoughtworks.com",
+        "issues": "https://github.com/TWConnect/piwikPlugin/issues",
+        "forum": "",
+        "irc": "",
+        "wiki": "",
+        "source": "",
+        "docs": "",
+        "rss": ""
+    },
+    "homepage": "",
+    "license": "GPL v3+",
+    "keywords": ["MyThoughtWorks"]
+}

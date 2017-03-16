@@ -1,0 +1,28 @@
+<script type="text/javascript" src="plugins/MyThoughtWorks/javascripts/GetKeywordRelatedInfo.js"></script>
+<div id='MyTWGetKeywordRelatedInfo'>
+
+    {% import "ajaxMacros.twig" as ajax %}
+    {{ ajax.LoadingDiv('ajaxLoadingMyTWKeywords') }}
+
+    <div class="content">
+        <div id="keyword-list">
+
+        </div>
+        <div class="info">
+            <div class="tab">
+                <button id="contentInfo" class="tablinks" onclick="showInfo(event, '#content-url-list')">CONTENT
+                </button>
+                <button id="peopleInfo" class="tablinks" onclick="showInfo(event, '#people-url-list')">PEOPLE</button>
+                <button id="groupInfo" class="tablinks" onclick="showInfo(event, '#group-url-list')">GROUP</button>
+            </div>
+
+            <table id="content-url-list" class="tabcontent"></table>
+            <table id="people-url-list" class="tabcontent"></table>
+            <table id="group-url-list" class="tabcontent"></table>
+
+        </div>
+    </div>
+</div>
+<script>
+
+</script>
