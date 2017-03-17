@@ -3,30 +3,6 @@
 <script>
     (function ($, require) {
         $(document).ready(function () {
-            var startDateObj = new Date(piwik.startDateString);
-            var minusDateNum = 30;
-            if (piwik.period == 'week') {
-                minusDateNum = 140;
-            } else if (piwik.period == 'month') {
-                startDateObj.setDate(1);
-                startDateObj.setMonth((startDateObj.getMonth() + 1) % 12 + 1);
-                minusDateNum = 365;
-            } else if (piwik.period == 'year') {
-                minusDateNum = 1000;
-            }
-            startDateObj.setDate(startDateObj.getDate() - minusDateNum);
-            var startDate = function (startDateObj) {
-                var d = new Date(startDateObj),
-                        month = '' + (d.getMonth() + 1),
-                        day = '' + d.getDate(),
-                        year = d.getFullYear();
-
-                if (month.length < 2) month = '0' + month;
-                if (day.length < 2) day = '0' + day;
-
-                return [year, month, day].join('-');
-            };
-
             var paceTimeCount = new ajaxHelper();
 
             paceTimeCount.addParams({
@@ -52,9 +28,15 @@
                             {
                                 type: 'bar',
                                 label: 'Search (times)',
-                                data: count
+                                data: count,
+                                backgroundColor: "red",
+                                borderColor: "red"
                             }
                         ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
                     }
                 });
             });
@@ -66,6 +48,7 @@
 
 <div class="card">
     <h2 style="margin:18px;">{{ name }}</h2>
+    <div style="margin:0 18px;">{{documentation|raw}}</div>
     <div class="card-content">
         <div class="chart-wrapper">
             <canvas id="pace_time_bar"></canvas>

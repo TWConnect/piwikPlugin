@@ -95,7 +95,7 @@ class GetPaceTimeOnSearchResultDistribution extends Base
      */
     public function getRelatedReports()
     {
-        return array(); // eg return array(new XyzReport());
+        return array();
     }
 
     /**
@@ -113,12 +113,15 @@ class GetPaceTimeOnSearchResultDistribution extends Base
      * return $view->render();
      * }
      */
-//    public function render()
-//    {
-//        $view = new View('@SearchMonitor/GetPaceTimeOnSearchPageBar');
-//        $view->name = $this->name;
-//        return $view->render();
-//    }
+
+    public function render()
+    {
+        $view = new View('@SearchMonitor/GetPaceTimeOnSearchPageBar');
+        $view->name = $this->name;
+        $view->documentation = $this->getDocumentation();
+        return $view->render();
+    }
+
     /**
      * By default your report is available to all users having at least view access. If you do not want this, you can
      * limit the audience by overwriting this method.

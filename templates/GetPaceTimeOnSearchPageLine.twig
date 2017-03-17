@@ -5,14 +5,18 @@
         $(document).ready(function () {
             var startDateObj = new Date(piwik.startDateString);
             var minusDateNum = 30;
-            if (piwik.period == 'week') {
+            var period = piwik.period;
+            if (period == 'week') {
                 minusDateNum = 140;
-            } else if (piwik.period == 'month') {
+            } else if (period == 'month') {
                 startDateObj.setDate(1);
                 startDateObj.setMonth((startDateObj.getMonth() + 1) % 12 + 1);
                 minusDateNum = 365;
-            } else if (piwik.period == 'year') {
+            } else if (period == 'year') {
                 minusDateNum = 1000;
+            } else if (period == 'range') {
+                minusDateNum = 0;
+                period = 'day';
             }
             startDateObj.setDate(startDateObj.getDate() - minusDateNum);
             var startDate = function (startDateObj) {
@@ -32,7 +36,8 @@
                 module: 'API',
                 method: 'SearchMonitor.getPaceTimeOnSearchResultTendency',
                 format: 'json',
-                date: startDate(startDateObj) + "," + piwik.endDateString
+                date: startDate(startDateObj) + "," + piwik.endDateString,
+                period: period
             }, 'get');
             paceTimeAvgTime.setCallback(function (response) {
                 var parsedObj = response;
@@ -40,7 +45,7 @@
                     return e['label']
                 });
                 var average_time = parsedObj.map(function (e) {
-                    return Math.floor(parseFloat(e['avg_time_on_page'])*10000) / 100.0;
+                    return Math.floor(parseFloat(e['avg_time_on_page'])*100) / 100.0;
                 });
                 var ctx = document.getElementById("pace_time_line").getContext("2d");
                 var myChart = new Chart(ctx, {
@@ -79,6 +84,7 @@
 </style>
 <div class="card">
     <h2 style="margin:18px;">{{ name }}</h2>
+    <div style="margin:0 18px;">{{documentation|raw}}</div>
     <div class="card-content">
         <div class="chart-wrapper">
             <canvas id="pace_time_line"></canvas>

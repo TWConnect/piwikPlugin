@@ -72,8 +72,8 @@ class GetBounceSearchCount extends Base
         $this->dimension = new DateDimension();
 
         $this->documentation = Piwik::translate('SearchMonitor_BounceSearchRateDocument') . '<br /><br />'
-            . '<b>Bounce Search Rate = </b>' . Piwik::translate('SearchMonitor_SearchBounceRateCalculate') . '<br />'
-            . '<b>Bounce Search Activity: </b>' . Piwik::translate('SearchMonitor_SearchBounceActivity') . '<br />';
+            . '<b>Bounce Search Rate = </b>' . Piwik::translate('SearchMonitor_BounceSearchRateCalculate') . '<br />'
+            . '<b>Bounce Search Activity: </b>' . Piwik::translate('SearchMonitor_BounceSearchActivity') . '<br />';
 
         // This defines in which order your report appears in the mobile app, in the menu and in the list of widgets
         $this->order = 2;
