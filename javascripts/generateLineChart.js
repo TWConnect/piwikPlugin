@@ -72,6 +72,13 @@ function getDateLabel(e, period) {
                     ]
                 },
                 options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    },
                     responsive: true,
                     maintainAspectRatio: false
                 }
@@ -114,6 +121,13 @@ function getDateLabel(e, period) {
                     ]
                 },
                 options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    },
                     responsive: true,
                     maintainAspectRatio: false
                 }
@@ -169,6 +183,13 @@ function getDateLabel(e, period) {
                     ]
                 },
                 options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    },
                     responsive: true,
                     maintainAspectRatio: false
                 }
