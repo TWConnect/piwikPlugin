@@ -1,10 +1,10 @@
 {
-    "name": "MyThoughtWorks",
+    "name": "SearchMonitor",
     "description": "Some custom reports which are related with search performance for MyThoughtWorks.",
-    "version": "0.7.0",
+    "version": "0.8.1",
     "theme": false,
     "require": {
-        "piwik": ">=2.16.0,<3.0.0-b1"
+        "piwik": ">=3.0.1-stable,<4.0.0"
     },
     "authors": [
         {
@@ -25,5 +25,5 @@
     },
     "homepage": "",
     "license": "GPL v3+",
-    "keywords": ["MyThoughtWorks"]
+    "keywords": ["SearchMonitor"]
 }

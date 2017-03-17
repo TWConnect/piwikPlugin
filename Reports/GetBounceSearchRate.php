@@ -81,7 +81,7 @@ class GetBounceSearchRate extends Base
 
 
         // If a subcategory is specified, the report will be displayed in the menu under this menu item
-        $this->subcategoryId = 'Actions_SubmenuSitesearch';
+        $this->subcategoryId = Piwik::translate('MyThoughtWorks_BounceSearch');
     }
 
     /**
