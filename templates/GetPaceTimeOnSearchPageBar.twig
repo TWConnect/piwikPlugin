@@ -8,8 +8,7 @@
             paceTimeCount.addParams({
                 module: 'API',
                 method: 'SearchMonitor.getPaceTimeOnSearchResultDistribution',
-                format: 'json',
-                date: startDate(startDateObj) + "," + piwik.endDateString
+                format: 'json'
             }, 'get');
             paceTimeCount.setCallback(function (response) {
                 var parsedObj = response;
