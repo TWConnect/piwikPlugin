@@ -1,0 +1,87 @@
+<script type="text/javascript" src="plugins/SearchMonitor/javascripts/Chart.js"></script>
+
+<script>
+    (function ($, require) {
+        $(document).ready(function () {
+            var startDateObj = new Date(piwik.startDateString);
+            var minusDateNum = 30;
+            if (piwik.period == 'week') {
+                minusDateNum = 140;
+            } else if (piwik.period == 'month') {
+                startDateObj.setDate(1);
+                startDateObj.setMonth((startDateObj.getMonth() + 1) % 12 + 1);
+                minusDateNum = 365;
+            } else if (piwik.period == 'year') {
+                minusDateNum = 1000;
+            }
+            startDateObj.setDate(startDateObj.getDate() - minusDateNum);
+            var startDate = function (startDateObj) {
+                var d = new Date(startDateObj),
+                        month = '' + (d.getMonth() + 1),
+                        day = '' + d.getDate(),
+                        year = d.getFullYear();
+
+                if (month.length < 2) month = '0' + month;
+                if (day.length < 2) day = '0' + day;
+
+                return [year, month, day].join('-');
+            };
+            var paceTimeAvgTime = new ajaxHelper();
+
+            paceTimeAvgTime.addParams({
+                module: 'API',
+                method: 'SearchMonitor.getPaceTimeOnSearchResultTendency',
+                format: 'json',
+                date: startDate(startDateObj) + "," + piwik.endDateString
+            }, 'get');
+            paceTimeAvgTime.setCallback(function (response) {
+                var parsedObj = response;
+                var labels = parsedObj.map(function (e) {
+                    return e['label']
+                });
+                var average_time = parsedObj.map(function (e) {
+                    return Math.floor(parseFloat(e['avg_time_on_page'])*10000) / 100.0;
+                });
+                var ctx = document.getElementById("pace_time_line").getContext("2d");
+                var myChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                type: 'line',
+                                label: 'Avg Time (s)',
+                                data: average_time,
+                                fill: false,
+                                lineTension: 0,
+                                borderColor: "red",
+                                borderWidth: 2,
+                                backgroundColor: "rgba(255,0,0,0.7)"
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            });
+            paceTimeAvgTime.send(false);
+        });
+
+    })($, require);
+</script>
+<style>
+    .chart-wrapper {
+        position: relative;
+        height: 300px;
+    }
+</style>
+<div class="card">
+    <h2 style="margin:18px;">{{ name }}</h2>
+    <div class="card-content">
+        <div class="chart-wrapper">
+            <canvas id="pace_time_line"></canvas>
+        </div>
+    </div>
+</div>

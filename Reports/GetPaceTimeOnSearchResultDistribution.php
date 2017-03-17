@@ -11,7 +11,6 @@ namespace Piwik\Plugins\SearchMonitor\Reports;
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
 use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Bar;
-
 use Piwik\Plugins\SearchMonitor\Columns\Distribution;
 use Piwik\View;
 
@@ -39,7 +38,7 @@ class GetPaceTimeOnSearchResultDistribution extends Base
         $this->order = 2;
 
         // By default standard metrics are defined but you can customize them by defining an array of metric names
-        $this->metrics       = array('Count');
+        $this->metrics = array('Count');
 
         // Uncomment the next line if your report does not contain any processed metrics, otherwise default
         // processed metrics will be assigned
@@ -59,10 +58,11 @@ class GetPaceTimeOnSearchResultDistribution extends Base
         $this->subcategoryId = Piwik::translate('SearchMonitor_PaceTimeOnSearchResult');
     }
 
-    public function getDefaultTypeViewDataTable(){
+    public function getDefaultTypeViewDataTable()
+    {
         return Bar::ID;
     }
-    
+
 
     /**
      * Here you can configure how your report should be displayed. For instance whether your report supports a search
@@ -79,7 +79,7 @@ class GetPaceTimeOnSearchResultDistribution extends Base
         // $view->config->show_search = false;
 //        $view->requestConfig->filter_sort_column = 'label';
 //        $view->requestConfig->filter_sort_order = 'desc'
-        $view->requestConfig->disable_generic_filters=true;
+        $view->requestConfig->disable_generic_filters = true;
         $view->config->show_series_picker = false;
         // $view->requestConfig->filter_limit = 10';
 //        $view->config->enable_sort = false;
@@ -113,7 +113,12 @@ class GetPaceTimeOnSearchResultDistribution extends Base
      * return $view->render();
      * }
      */
-
+//    public function render()
+//    {
+//        $view = new View('@SearchMonitor/GetPaceTimeOnSearchPageBar');
+//        $view->name = $this->name;
+//        return $view->render();
+//    }
     /**
      * By default your report is available to all users having at least view access. If you do not want this, you can
      * limit the audience by overwriting this method.

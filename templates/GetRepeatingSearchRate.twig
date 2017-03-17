@@ -1,4 +1,5 @@
 <script type="text/javascript" src="plugins/SearchMonitor/javascripts/Chart.js"></script>
+<script type="text/javascript" src="plugins/SearchMonitor/javascripts/utils.js"></script>
 
 <script>
     (function ($, require) {
@@ -49,7 +50,7 @@
                     return e['label']
                 });
                 var repeating_rate = parsedObj.map(function (e) {
-                    return parseFloat(e['repeating_rate']) * 100
+                    return Math.floor(parseFloat(e['repeating_rate']) * 10000) / 100.0;
                 });
                 var ctx = document.getElementById("chart1").getContext("2d");
                 var myChart = new Chart(ctx, {

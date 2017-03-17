@@ -111,14 +111,37 @@ class API extends \Piwik\Plugin\API
      * @param $day
      * @return mixed
      */
-    public function getVisitDetailsFromApi($idSite, $period, $day, $segment)
+    public function getVisitDetailsFromApi($idSite, $period, $date, $segment = false)
     {
         return \Piwik\API\Request::processRequest('Live.getLastVisitsDetails', array(
             'idSite' => $idSite,
             'period' => $period,
-            'date' => $day,
+            'date' => $date,
             'segment' => $segment
         ));
+    }
+
+    public function getDataOfPaceTimeOnSearchResultDistribution($idSite, $period, $date, $segment = false)
+    {
+        $data = $this->getVisitDetailsFromApi($idSite, $period, $date, $segment);
+        $metatable = new DataTable();
+
+        foreach ($data as $row) {
+            $detail = $row->getColumn('actionDetails');
+            $isResult = array();
+            foreach ($detail as $action) {
+                if ($action['type'] == 'event' && $action['eventCategory'] == 'searchResult') {
+                    $isResult[] = $action['eventName'];
+                }
+                $key = array_search($action['url'], $isResult);
+                if ($action['type'] == 'action' && $key !== FALSE) {
+                    $visitTime = $action['timeSpent'];
+                    $metatable->addRowFromArray(array(Row::COLUMNS => array('avg_time_on_page' => $visitTime)));
+                    unset($isResult[$key]);
+                }
+            }
+        }
+        return $metatable;
     }
 
     /**
@@ -141,25 +164,7 @@ class API extends \Piwik\Plugin\API
             array('label' => '60s above', 'Count' => 0)
         ));
 
-        $data = $this->getVisitDetailsFromApi($idSite, $period, $date, $segment);
-
-        $metatable = new DataTable();
-
-        foreach ($data as $row) {
-            $detail = $row->getColumn('actionDetails');
-            $isResult = array();
-            foreach ($detail as $action) {
-                if ($action['type'] == 'event' && $action['eventCategory'] == 'searchResult') {
-                    $isResult[] = $action['eventName'];
-                }
-                $key = array_search($action['url'], $isResult);
-                if ($action['type'] == 'action' && $key !== FALSE) {
-                    $visitTime = $action['timeSpent'];
-                    $metatable->addRowFromArray(array(Row::COLUMNS => array('avg_time_on_page' => $visitTime)));
-                    unset($isResult[$key]);
-                }
-            }
-        }
+        $metatable = $this->getDataOfPaceTimeOnSearchResultDistribution($idSite, $period, $date, $segment);
 
         foreach ($metatable->getRows() as $row) {
             $value = $row->getColumn('avg_time_on_page');
@@ -221,7 +226,7 @@ class API extends \Piwik\Plugin\API
      * @param $day
      * @return array
      */
-    private function getRepeatingSearchInfo($idSite, $period, $date, $segment, $day)
+    private function getRepeatingSearchInfo($idSite, $period, $date, $segment = false, $day)
     {
         if (strpos($date, ',') !== false && $period == 'day') {
             $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
@@ -321,7 +326,7 @@ class API extends \Piwik\Plugin\API
      * @param $day
      * @return array
      */
-    private function getBounceSearchInfo($idSite, $period, $date, $segment, $day)
+    private function getBounceSearchInfo($idSite, $period, $date, $segment = false, $day)
     {
         if (strpos($date, ',') !== false && $period == 'day') {
             $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
@@ -337,12 +342,12 @@ class API extends \Piwik\Plugin\API
                 if ($detail[$index]['type'] == 'search') {
                     $totalSearchCount++;
                     $nextIndex = $index + 1;
-                    if($index == count($detail) - 1){
+                    if ($index == count($detail) - 1) {
                         $bouncedSearchCount++;
-                    }else {
-                        if($detail[$nextIndex]['type'] !== 'event') {
+                    } else {
+                        if ($detail[$nextIndex]['type'] !== 'event') {
                             $bouncedSearchCount++;
-                        }elseif($detail[$nextIndex]['eventCategory'] !== 'searchResult'){
+                        } elseif ($detail[$nextIndex]['eventCategory'] !== 'searchResult') {
                             $bouncedSearchCount++;
                         }
                     }
