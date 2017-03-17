@@ -6,12 +6,12 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 
-namespace Piwik\Plugins\MyThoughtWorks\Reports;
+namespace Piwik\Plugins\SearchMonitor\Reports;
 
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
 use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Evolution;
-use Piwik\Plugins\MyThoughtWorks\Columns\DateDimension;
+use Piwik\Plugins\SearchMonitor\Columns\DateDimension;
 
 
 /**
@@ -41,8 +41,8 @@ class GetBounceSearchCount extends Base
     {
         if (!empty($this->dimension)) {
             $view->config->addTranslations(array('label' => $this->dimension->getName(),
-                'bounce_search_count' => Piwik::translate('MyThoughtWorks_BounceSearchCount'),
-                'total_search_count' => Piwik::translate('MyThoughtWorks_TotalSearchCount')
+                'bounce_search_count' => Piwik::translate('SearchMonitor_BounceSearchCount'),
+                'total_search_count' => Piwik::translate('SearchMonitor_TotalSearchCount')
             ));
         }
 
@@ -68,12 +68,12 @@ class GetBounceSearchCount extends Base
     {
         parent::init();
 
-        $this->name = Piwik::translate('MyThoughtWorks_BounceSearchCount');
+        $this->name = Piwik::translate('SearchMonitor_BounceSearchCount');
         $this->dimension = new DateDimension();
 
-        $this->documentation = Piwik::translate('MyThoughtWorks_BounceSearchRateDocument') . '<br /><br />'
-            . '<b>Bounce Search Rate = </b>' . Piwik::translate('MyThoughtWorks_SearchBounceRateCalculate') . '<br />'
-            . '<b>Bounce Search Activity: </b>' . Piwik::translate('MyThoughtWorks_SearchBounceActivity') . '<br />';
+        $this->documentation = Piwik::translate('SearchMonitor_BounceSearchRateDocument') . '<br /><br />'
+            . '<b>Bounce Search Rate = </b>' . Piwik::translate('SearchMonitor_SearchBounceRateCalculate') . '<br />'
+            . '<b>Bounce Search Activity: </b>' . Piwik::translate('SearchMonitor_SearchBounceActivity') . '<br />';
 
         // This defines in which order your report appears in the mobile app, in the menu and in the list of widgets
         $this->order = 2;
@@ -83,7 +83,7 @@ class GetBounceSearchCount extends Base
 
 
         // If a subcategory is specified, the report will be displayed in the menu under this menu item
-        $this->subcategoryId = Piwik::translate('MyThoughtWorks_BounceSearch');
+        $this->subcategoryId = Piwik::translate('SearchMonitor_BounceSearch');
     }
 
     /**
@@ -95,7 +95,7 @@ class GetBounceSearchCount extends Base
      * @return string
     public function render()
      * {
-     * $view = new View('@MyThoughtWorks/getPaceTimeOnSearchResultContent');
+     * $view = new View('@SearchMonitor/getPaceTimeOnSearchResultContent');
      * $view->myData = array();
      *
      * return $view->render();

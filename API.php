@@ -6,15 +6,15 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
  */
-namespace Piwik\Plugins\MyThoughtWorks;
+namespace Piwik\Plugins\SearchMonitor;
 
 use Piwik\DataTable;
 use Piwik\DataTable\Row;
 
 /**
- * API for plugin MyThoughtWorks
+ * API for plugin SearchMonitor
  *
- * @method static \Piwik\Plugins\MyThoughtWorks\API getInstance()
+ * @method static \Piwik\Plugins\SearchMonitor\API getInstance()
  */
 class API extends \Piwik\Plugin\API
 {

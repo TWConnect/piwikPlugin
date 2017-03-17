@@ -7,7 +7,7 @@ $(document).ready(function () {
         var ajaxRequest = new ajaxHelper();
         ajaxRequest.setLoadingElement('#ajaxLoadingMyTWKeywords');
         ajaxRequest.addParams({
-            module: 'MyThoughtWorks',
+            module: 'SearchMonitor',
             action: 'getSearchKeywords'
         }, 'get');
         ajaxRequest.setCallback(
@@ -29,7 +29,7 @@ $(document).ready(function () {
         ajaxRequest.setLoadingElement('#ajaxLoadingMyTWKeywords');
         ajaxRequest.addParams({
             module: 'API',
-            method: 'MyThoughtWorks.getKeywordRelatedInfo',
+            method: 'SearchMonitor.getKeywordRelatedInfo',
             reqKeyword: keyword,
             format: 'json'
         }, 'get');

@@ -6,12 +6,12 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 
-namespace Piwik\Plugins\MyThoughtWorks\Reports;
+namespace Piwik\Plugins\SearchMonitor\Reports;
 
 use Piwik\Piwik;
 
 use Piwik\Plugin\ViewDataTable;
-use Piwik\Plugins\MyThoughtWorks\Columns\Keyword;
+use Piwik\Plugins\SearchMonitor\Columns\Keyword;
 use Piwik\View;
 
 /**
@@ -25,7 +25,7 @@ class GetSearchKeywords extends Base
     {
         parent::init();
 
-        $this->name          = Piwik::translate('MyThoughtWorks_SearchKeywords');
+        $this->name          = Piwik::translate('SearchMonitor_SearchKeywords');
         $this->dimension     = new Keyword();
         $this->documentation = Piwik::translate('Show all the keywords and related info');
 
@@ -62,7 +62,7 @@ class GetSearchKeywords extends Base
     {
         if (!empty($this->dimension)) {
             $view->config->addTranslations(array('label' => $this->dimension->getName(),
-                'nb_visits' => Piwik::translate('MyThoughtWorks_SearchCount')));
+                'nb_visits' => Piwik::translate('SearchMonitor_SearchCount')));
         }
 
         // $view->config->show_search = false;
@@ -92,7 +92,7 @@ class GetSearchKeywords extends Base
      * @return string
     public function render()
     {
-        $view = new View('@MyThoughtWorks/getSearchKeywords');
+        $view = new View('@SearchMonitor/getSearchKeywords');
         $view->myData = array();
 
         return $view->render();

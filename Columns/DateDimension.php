@@ -6,7 +6,7 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
  */
-namespace Piwik\Plugins\MyThoughtWorks\Columns;
+namespace Piwik\Plugins\SearchMonitor\Columns;
 
 use Piwik\Columns\Dimension;
 use Piwik\Piwik;
@@ -25,6 +25,6 @@ class DateDimension extends Dimension
      */
     public function getName()
     {
-        return Piwik::translate('MyThoughtWorks_Date');
+        return Piwik::translate('SearchMonitor_Date');
     }
 }

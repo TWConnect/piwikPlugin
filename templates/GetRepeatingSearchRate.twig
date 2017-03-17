@@ -1,4 +1,4 @@
-<script type="text/javascript" src="plugins/MyThoughtWorks/javascripts/Chart.js"></script>
+<script type="text/javascript" src="plugins/SearchMonitor/javascripts/Chart.js"></script>
 
 <script>
     (function ($, require) {
@@ -38,7 +38,7 @@
 
             repeatingRateRequest.addParams({
                 module: 'API',
-                method: 'MyThoughtWorks.getRepeatingSearchRate',
+                method: 'SearchMonitor.getRepeatingSearchRate',
                 format: 'json',
                 date: startDate(startDateObj) + "," + piwik.endDateString,
                 period: period
@@ -79,7 +79,7 @@
 
             repeatingCountRequest.addParams({
                 module: 'API',
-                method: 'MyThoughtWorks.getRepeatingSearchCount',
+                method: 'SearchMonitor.getRepeatingSearchCount',
                 format: 'json',
                 date: startDate(startDateObj) + "," + piwik.endDateString,
                 period: period

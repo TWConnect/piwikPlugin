@@ -6,7 +6,7 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 
-namespace Piwik\Plugins\MyThoughtWorks\Reports;
+namespace Piwik\Plugins\SearchMonitor\Reports;
 
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
@@ -39,9 +39,9 @@ class GetRepeatingSearchRate extends Base
     {
         if (!empty($this->dimension)) {
             $view->config->addTranslations(array('label' => $this->dimension->getName(),
-//                'repeating_rate' => Piwik::translate('MyThoughtWorks_Percentage'),
-//                'repeating_search_count' => Piwik::translate('MyThoughtWorks_RepeatingSearchCount'),
-//                'total_search_count' => Piwik::translate('MyThoughtWorks_TotalSearchCount'),
+//                'repeating_rate' => Piwik::translate('SearchMonitor_Percentage'),
+//                'repeating_search_count' => Piwik::translate('SearchMonitor_RepeatingSearchCount'),
+//                'total_search_count' => Piwik::translate('SearchMonitor_TotalSearchCount'),
 //                'bounce_rate' => 'NbVisitsBounced'
             ));
         }
@@ -73,7 +73,7 @@ class GetRepeatingSearchRate extends Base
      * @return string
     public function render()
      * {
-     * $view = new View('@MyThoughtWorks/getPaceTimeOnSearchResultContent');
+     * $view = new View('@SearchMonitor/getPaceTimeOnSearchResultContent');
      * $view->myData = array();
      *
      * return $view->render();
@@ -82,7 +82,7 @@ class GetRepeatingSearchRate extends Base
 
     public function render()
     {
-        $view = new View('@MyThoughtWorks/GetRepeatingSearchRate');
+        $view = new View('@SearchMonitor/GetRepeatingSearchRate');
         $view->name = $this->name;
         $view->doc = $this->documentation;
         return $view->render();
@@ -92,16 +92,16 @@ class GetRepeatingSearchRate extends Base
     {
         parent::init();
 
-        $this->name = Piwik::translate('MyThoughtWorks_RepeatingSearchRate');
+        $this->name = Piwik::translate('SearchMonitor_RepeatingSearchRate');
         $this->dimension = null;
 //        $this->processedMetrics = array(
 //            new RepeatingRate()
 //        );
-        $this->documentation = Piwik::translate('MyThoughtWorks_RepeatingSearchRateDocument') . '<br /><br />'
-            . '<b>Repeating Search Rate = </b>' . Piwik::translate('MyThoughtWorks_RepeatingSearchRateCalculate') . '<br />'
-            . '<b>Total Search Amount = </b>' . Piwik::translate('MyThoughtWorks_TotalSearchAmountCalculate') . '<br /><br />'
-            . '<b>Repeating Search: </b>' . Piwik::translate('MyThoughtWorks_RepeatingSearchDocument') . '<br />'
-            . '<b>Success Search: </b>' . Piwik::translate('MyThoughtWorks_SuccessSearchDocument') . '<br />';
+        $this->documentation = Piwik::translate('SearchMonitor_RepeatingSearchRateDocument') . '<br /><br />'
+            . '<b>Repeating Search Rate = </b>' . Piwik::translate('SearchMonitor_RepeatingSearchRateCalculate') . '<br />'
+            . '<b>Total Search Amount = </b>' . Piwik::translate('SearchMonitor_TotalSearchAmountCalculate') . '<br /><br />'
+            . '<b>Repeating Search: </b>' . Piwik::translate('SearchMonitor_RepeatingSearchDocument') . '<br />'
+            . '<b>Success Search: </b>' . Piwik::translate('SearchMonitor_SuccessSearchDocument') . '<br />';
 
         // This defines in which order your report appears in the mobile app, in the menu and in the list of widgets
         $this->order = 3;
@@ -112,7 +112,7 @@ class GetRepeatingSearchRate extends Base
 
 
         // If a subcategory is specified, the report will be displayed in the menu under this menu item
-        $this->subcategoryId = Piwik::translate('MyThoughtWorks_RepeatingSearch');
+        $this->subcategoryId = Piwik::translate('SearchMonitor_RepeatingSearch');
     }
 
     /**

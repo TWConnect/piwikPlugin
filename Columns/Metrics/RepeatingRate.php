@@ -5,7 +5,7 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
-namespace Piwik\Plugins\MyThoughtWorks\Columns\Metrics;
+namespace Piwik\Plugins\SearchMonitor\Columns\Metrics;
 
 use Piwik\DataTable\Row;
 use Piwik\Metrics\Formatter;
@@ -29,7 +29,7 @@ class RepeatingRate extends ProcessedMetric
 
     public function getTranslatedName()
     {
-        return Piwik::translate('MyThoughtWorks_RepeatingSearchRate');
+        return Piwik::translate('SearchMonitor_RepeatingSearchRate');
     }
 
     public function getDependentMetrics()

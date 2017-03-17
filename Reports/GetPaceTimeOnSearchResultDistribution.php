@@ -6,13 +6,13 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 
-namespace Piwik\Plugins\MyThoughtWorks\Reports;
+namespace Piwik\Plugins\SearchMonitor\Reports;
 
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
 use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Bar;
 
-use Piwik\Plugins\MyThoughtWorks\Columns\Distribution;
+use Piwik\Plugins\SearchMonitor\Columns\Distribution;
 use Piwik\View;
 
 /**
@@ -26,12 +26,12 @@ class GetPaceTimeOnSearchResultDistribution extends Base
     {
         parent::init();
 
-        $this->name = Piwik::translate('MyThoughtWorks_PaceTimeOnSearchResultDistribution');
+        $this->name = Piwik::translate('SearchMonitor_PaceTimeOnSearchResultDistribution');
         $this->dimension = new Distribution();
 
-        $documentation = Piwik::translate('MyThoughtWorks_PaceTimeOnSearchResultDistributionDocument') . '<br /><br />'
-            . '<b>Time of Reading Search Result Content: </b>' . Piwik::translate('MyThoughtWorks_TimeOnSearchResultPageDocument') . '<br />'
-            . '<b>Count: </b>' . Piwik::translate('MyThoughtWorks_DistributionCountOnSearchResultPageDocument') . '<br />';
+        $documentation = Piwik::translate('SearchMonitor_PaceTimeOnSearchResultDistributionDocument') . '<br /><br />'
+            . '<b>Time of Reading Search Result Content: </b>' . Piwik::translate('SearchMonitor_TimeOnSearchResultPageDocument') . '<br />'
+            . '<b>Count: </b>' . Piwik::translate('SearchMonitor_DistributionCountOnSearchResultPageDocument') . '<br />';
 
         $this->documentation = $documentation;
 
@@ -56,7 +56,7 @@ class GetPaceTimeOnSearchResultDistribution extends Base
         // $this->constantRowsCount = true;
 
         // If a subcategory is specified, the report will be displayed in the menu under this menu item
-        $this->subcategoryId = Piwik::translate('MyThoughtWorks_PaceTimeOnSearchResult');
+        $this->subcategoryId = Piwik::translate('SearchMonitor_PaceTimeOnSearchResult');
     }
 
     public function getDefaultTypeViewDataTable(){
@@ -107,7 +107,7 @@ class GetPaceTimeOnSearchResultDistribution extends Base
      * @return string
     public function render()
      * {
-     * $view = new View('@MyThoughtWorks/getPaceTimeOnSearchResultContent');
+     * $view = new View('@SearchMonitor/getPaceTimeOnSearchResultContent');
      * $view->myData = array();
      *
      * return $view->render();

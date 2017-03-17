@@ -6,9 +6,9 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 
-namespace Piwik\Plugins\MyThoughtWorks;
+namespace Piwik\Plugins\SearchMonitor;
 
-class MyThoughtWorks extends \Piwik\Plugin
+class SearchMonitor extends \Piwik\Plugin
 {
     /**
      * @see Piwik\Plugin::registerEvents
@@ -25,6 +25,6 @@ class MyThoughtWorks extends \Piwik\Plugin
      */
     public function getStylesheetFiles(&$stylesheets)
     {
-        $stylesheets[] = "plugins/MyThoughtWorks/stylesheets/GetKeywordRelatedInfo.less";
+        $stylesheets[] = "plugins/SearchMonitor/stylesheets/GetKeywordRelatedInfo.less";
     }
 }

@@ -6,7 +6,7 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
  */
-namespace Piwik\Plugins\MyThoughtWorks\Widgets;
+namespace Piwik\Plugins\SearchMonitor\Widgets;
 
 use Piwik\Piwik;
 use Piwik\Widget\Widget;
@@ -32,12 +32,12 @@ class GetKeywordRelatedInfo extends Widget
         /**
          * Set the subcategory the widget belongs to. If a subcategory is set, the widget will be shown in the UI.
          */
-        $config->setSubcategoryId(Piwik::translate('MyThoughtWorks_KeywordRelated'));
+        $config->setSubcategoryId(Piwik::translate('SearchMonitor_KeywordRelated'));
 
         /**
          * Set the name of the widget belongs to.
          */
-        $config->setName('MyThoughtWorks_KeywordRelatedInfo');
+        $config->setName('SearchMonitor_KeywordRelatedInfo');
 
         /**
          * Set the order of the widget. The lower the number, the earlier the widget will be listed within a category.

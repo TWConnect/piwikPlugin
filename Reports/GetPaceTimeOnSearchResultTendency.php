@@ -6,12 +6,12 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 
-namespace Piwik\Plugins\MyThoughtWorks\Reports;
+namespace Piwik\Plugins\SearchMonitor\Reports;
 
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
 
-use Piwik\Plugins\MyThoughtWorks\Columns\DateDimension;
+use Piwik\Plugins\SearchMonitor\Columns\DateDimension;
 use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Evolution;
 use Piwik\View;
 
@@ -27,11 +27,11 @@ class GetPaceTimeOnSearchResultTendency extends Base
     {
         parent::init();
 
-        $this->name = Piwik::translate('MyThoughtWorks_PaceTimeOnSearchResultTendency');
+        $this->name = Piwik::translate('SearchMonitor_PaceTimeOnSearchResultTendency');
         $this->dimension = new DateDimension();
-        $documentation = Piwik::translate('MyThoughtWorks_PaceTimeOnSearchResultTendencyDocument') . '<br /><br />'
-            . '<b>Time of Reading Search Result Content: </b>' . Piwik::translate('MyThoughtWorks_TimeOnSearchResultPageDocument') . '<br />'
-            . '<b>Avg. Time: </b>' . Piwik::translate('MyThoughtWorks_AvgTimeOnSearchResultPageDocument') . '<br />';
+        $documentation = Piwik::translate('SearchMonitor_PaceTimeOnSearchResultTendencyDocument') . '<br /><br />'
+            . '<b>Time of Reading Search Result Content: </b>' . Piwik::translate('SearchMonitor_TimeOnSearchResultPageDocument') . '<br />'
+            . '<b>Avg. Time: </b>' . Piwik::translate('SearchMonitor_AvgTimeOnSearchResultPageDocument') . '<br />';
 
         $this->documentation = $documentation;
 
@@ -56,7 +56,7 @@ class GetPaceTimeOnSearchResultTendency extends Base
         // $this->constantRowsCount = true;
 
         // If a subcategory is specified, the report will be displayed in the menu under this menu item
-        $this->subcategoryId = Piwik::translate('MyThoughtWorks_PaceTimeOnSearchResult');
+        $this->subcategoryId = Piwik::translate('SearchMonitor_PaceTimeOnSearchResult');
     }
 
     public function getDefaultTypeViewDataTable(){
@@ -78,7 +78,7 @@ class GetPaceTimeOnSearchResultTendency extends Base
     public function configureView(ViewDataTable $view)
     {
         if (!empty($this->dimension)) {
-            $view->config->addTranslations(array('label' => $this->dimension->getName(), 'avg_time_on_page' => Piwik::translate('MyThoughtWorks_AvgTimeOnPage')));
+            $view->config->addTranslations(array('label' => $this->dimension->getName(), 'avg_time_on_page' => Piwik::translate('SearchMonitor_AvgTimeOnPage')));
         }
 
         // $view->config->show_search = false;
@@ -111,7 +111,7 @@ class GetPaceTimeOnSearchResultTendency extends Base
      * @return string
     public function render()
      * {
-     * $view = new View('@MyThoughtWorks/getPaceTimeOnSearchResultContent');
+     * $view = new View('@SearchMonitor/getPaceTimeOnSearchResultContent');
      * $view->myData = array();
      *
      * return $view->render();
