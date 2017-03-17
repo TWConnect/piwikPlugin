@@ -1,3 +1,14 @@
+function getDateLabel(e, period) {
+    var label = e['label'];
+
+    if (period == 'month') {
+        var mydate = new Date(label);
+        var month = ["January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"][mydate.getMonth()];
+        label = month + ' ' + mydate.getFullYear();
+    }
+    return label
+}
 (function ($, require) {
     $(document).ready(function () {
         var startDateObj = new Date(piwik.startDateString);
@@ -37,7 +48,7 @@
         paceTimeAvgTime.setCallback(function (response) {
             var parsedObj = response;
             var labels = parsedObj.map(function (e) {
-                return e['label']
+                return getDateLabel(e, period);
             });
             var average_time = parsedObj.map(function (e) {
                 return Math.floor(parseFloat(e['avg_time_on_page']) * 100) / 100.0;
@@ -79,7 +90,7 @@
         repeatingRateRequest.setCallback(function (response) {
             var parsedObj = response;
             var labels = parsedObj.map(function (e) {
-                return e['label']
+                return getDateLabel(e, period);
             });
             var repeating_rate = parsedObj.map(function (e) {
                 return Math.floor(parseFloat(e['repeating_rate']) * 10000) / 100.0;
@@ -121,7 +132,7 @@
         repeatingCountRequest.setCallback(function (response) {
             var parsedObj = response;
             var labels = parsedObj.map(function (e) {
-                return e['label']
+                return getDateLabel(e, period);
             });
             var repeating_search_count = parsedObj.map(function (e) {
                 return e['repeating_search_count']
