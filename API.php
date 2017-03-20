@@ -340,14 +340,36 @@ class API extends \Piwik\Plugin\API
             $detail = $row->getColumn('actionDetails');
             for ($index = 0; $index < count($detail); ++$index) {
                 if ($detail[$index]['type'] == 'search') {
+                    $searchWord = $detail[$index]['siteSearchKeyword'];
                     $totalSearchCount++;
-                    $nextIndex = $index + 1;
+                    $searchSuccess = false;
                     if ($index == count($detail) - 1) {
                         $bouncedSearchCount++;
                     } else {
-                        if ($detail[$nextIndex]['type'] !== 'event') {
-                            $bouncedSearchCount++;
-                        } elseif ($detail[$nextIndex]['eventCategory'] !== 'searchResult') {
+                        if ($detail[$index - 1]['type'] === 'event' &&
+                            $detail[$index - 1]['eventCategory'] === 'searchResult' &&
+                            $detail[$index - 1]['eventAction'] === $searchWord
+                        ) {
+                            $searchSuccess = true;
+                        }
+
+                        $checkSearchSuccess = $index + 1;
+                        while ($checkSearchSuccess < count($detail)) {
+                            if ($detail[$checkSearchSuccess]['type'] === 'event' &&
+                                $detail[$checkSearchSuccess]['eventCategory'] === 'searchResult' &&
+                                $detail[$checkSearchSuccess]['eventAction'] === $searchWord
+                            ) {
+                                $searchSuccess = true;
+                                break;
+                            }
+                            if ($detail[$checkSearchSuccess]['type'] === 'search') {
+                                $searchSuccess = false;
+                                break;
+                            }
+                            $checkSearchSuccess++;
+                        }
+
+                        if (!$searchSuccess) {
                             $bouncedSearchCount++;
                         }
                     }
