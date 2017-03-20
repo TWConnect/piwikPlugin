@@ -83,7 +83,7 @@ class GetBounceSearchCount extends Base
 
 
         // If a subcategory is specified, the report will be displayed in the menu under this menu item
-        $this->subcategoryId = Piwik::translate('SearchMonitor_BounceSearch');
+//        $this->subcategoryId = Piwik::translate('SearchMonitor_BounceSearch');
     }
 
     /**
