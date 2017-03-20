@@ -365,8 +365,11 @@ class API extends \Piwik\Plugin\API
 
         foreach ($dateArray as $day) {
             list($bouncedSearchCount, $totalSearchCount) = $this->getBounceSearchInfo($idSite, $period, $date, $segment, $day);
-            $bounceRate = ($bouncedSearchCount / $totalSearchCount) * 100;
-
+            if ($totalSearchCount == 0) {
+                $bounceRate = 0;
+            } else {
+                $bounceRate = $bouncedSearchCount / $totalSearchCount;
+            }
             $metatable->addRowFromArray(array(Row::COLUMNS => array(
                 'label' => $day,
                 'bounce_search_rate' => $bounceRate

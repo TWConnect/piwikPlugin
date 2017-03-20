@@ -12,6 +12,7 @@ use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
 use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Evolution;
 use Piwik\Plugins\SearchMonitor\Columns\DateDimension;
+use Piwik\View;
 
 
 /**
@@ -99,6 +100,13 @@ class GetBounceSearchRate extends Base
      * return $view->render();
      * }
      */
+    public function render()
+    {
+        $view = new View('@SearchMonitor/GetBounceSearchRate');
+        $view->name = $this->name;
+        $view->doc = $this->documentation;
+        return $view->render();
+    }
 
     /**
      * By default your report is available to all users having at least view access. If you do not want this, you can

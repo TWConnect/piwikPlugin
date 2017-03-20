@@ -1,0 +1,21 @@
+<script type="text/javascript" src="plugins/SearchMonitor/javascripts/Chart.js"></script>
+<script type="text/javascript" src="plugins/SearchMonitor/javascripts/generateLineChart.js"></script>
+
+<style>
+    .chart-wrapper {
+        position: relative;
+        height: 200px;
+    }
+</style>
+<div class="card">
+    <h2 style="margin:18px;">{{ name }}</h2>
+    <p style="margin:18px;">{{ doc|raw }}</p>
+    <div class="card-content">
+        <div class="chart-wrapper">
+            <canvas id="bounce_rate"></canvas>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="bounce_count"></canvas>
+        </div>
+    </div>
+</div>

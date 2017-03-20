@@ -1,14 +1,3 @@
-function getDateLabel(e, period) {
-    var label = e['label'];
-
-    if (period == 'month') {
-        var mydate = new Date(label);
-        var month = ["January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"][mydate.getMonth()];
-        label = month + ' ' + mydate.getFullYear();
-    }
-    return label
-}
 (function ($, require) {
     $(document).ready(function () {
         var startDateObj = new Date(piwik.startDateString);
@@ -27,16 +16,28 @@ function getDateLabel(e, period) {
             period = 'day';
         }
         startDateObj.setDate(startDateObj.getDate() - minusDateNum);
-        
+
         var formatDate = function (startDateObj) {
             var d = new Date(startDateObj), month = '' + (d.getMonth() + 1), day = '' + d.getDate(), year = d.getFullYear();
-            if (month.length < 2) 
+            if (month.length < 2)
                 month = '0' + month;
-            if (day.length < 2) 
+            if (day.length < 2)
                 day = '0' + day;
             return [year, month, day].join('-');
         };
-        
+
+        var getDateLabel = function (e, period) {
+            var label = e['label'];
+
+            if (period == 'month') {
+                var date = new Date(label);
+                var month = ["January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"][date.getMonth()];
+                label = month + ' ' + date.getFullYear();
+            }
+            return label;
+        };
+
         var paceTimeAvgTime = new ajaxHelper();
         paceTimeAvgTime.addParams({
             module: 'API',
@@ -53,7 +54,7 @@ function getDateLabel(e, period) {
             var average_time = parsedObj.map(function (e) {
                 return Math.floor(parseFloat(e['avg_time_on_page']) * 100) / 100.0;
             });
-            var ctx = document.getElementById("pace_time_line").getContext("2d");
+            var ctx = document.getElementById("pace_time_line");
             var myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -102,7 +103,7 @@ function getDateLabel(e, period) {
             var repeating_rate = parsedObj.map(function (e) {
                 return Math.floor(parseFloat(e['repeating_rate']) * 10000) / 100.0;
             });
-            var ctx = document.getElementById("chart1").getContext("2d");
+            var ctx = document.getElementById("chart1");
             var myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -154,7 +155,7 @@ function getDateLabel(e, period) {
             var total_search_count = parsedObj.map(function (e) {
                 return e['total_search_count']
             });
-            var ctx = document.getElementById("chart2").getContext("2d");
+            var ctx = document.getElementById("chart2");
             var myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -196,6 +197,110 @@ function getDateLabel(e, period) {
             });
         });
         repeatingCountRequest.send(false);
+
+        var bounceRateRequest = new ajaxHelper();
+        bounceRateRequest.addParams({
+            module: 'API',
+            method: 'SearchMonitor.getBounceSearchRate',
+            format: 'json',
+            date: formatDate(startDateObj) + "," + piwik.endDateString,
+            period: period
+        }, 'get');
+        bounceRateRequest.setCallback(function (response) {
+            var parsedObj = response;
+            var labels = parsedObj.map(function (e) {
+                return getDateLabel(e, period);
+            });
+            var bounce_search_rate = parsedObj.map(function (e) {
+                return Math.floor(parseFloat(e['bounce_search_rate']) * 10000) / 100.0;
+            });
+            var ctx = document.getElementById("bounce_rate");
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Bounce Search Rate (%)',
+                            data: bounce_search_rate,
+                            fill: false,
+                            lineTension: 0,
+                            borderColor: "red",
+                            borderWidth: 2,
+                            backgroundColor: "rgba(255,0,0,0.7)"
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    },
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        });
+        bounceRateRequest.send(false);
+
+        var bounceCountRequest = new ajaxHelper();
+        bounceCountRequest.addParams({
+            module: 'API',
+            method: 'SearchMonitor.getBounceSearchCount',
+            format: 'json',
+            date: formatDate(startDateObj) + "," + piwik.endDateString,
+            period: period
+        }, 'get');
+        bounceCountRequest.setCallback(function (response) {
+            var parsedObj = response;
+            var labels = parsedObj.map(function (e) {
+                return getDateLabel(e, period);
+            });
+            var bounce_search_count = parsedObj.map(function (e) {
+                return e['bounce_search_count']
+            });
+            var total_search_count = parsedObj.map(function (e) {
+                return e['total_search_count']
+            });
+            var ctx = document.getElementById("bounce_count");
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Bounce Search Count',
+                            data: bounce_search_count,
+                            fill: false,
+                            lineTension: 0,
+                            borderColor: "red",
+                            borderWidth: 2,
+                            backgroundColor: "rgba(255,0,0,0.7)"
+                        },
+                        {
+                            type: 'line',
+                            label: 'Total Search Count',
+                            data: total_search_count,
+                            fill: false,
+                            lineTension: 0,
+                            borderColor: "rgba(0,177,177,1)",
+                            backgroundColor: "rgba(0,177,177,0.7)",
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        });
+        bounceCountRequest.send(false);
     });
 
 })($, require);
