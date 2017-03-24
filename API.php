@@ -33,31 +33,21 @@ class API extends \Piwik\Plugin\API
         $metatable = new DataTable();
 
         foreach ($dateArray as $day) {
-            if (strpos($date, ',') !== false && $period == 'day') {
-                $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
-            } else {
-                $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
-            }
-
             $sumPaceTime = 0;
             $sumVisits = 0;
-
-            foreach ($data as $row) {
-
-                $detail = $row->getColumn('actionDetails');
-                $isResult = array();
-                foreach ($detail as $action) {
-                    if ($action['type'] == 'event' && $action['eventCategory'] == 'searchResult') {
-                        $isResult[] = $action['eventName'];
-                    }
-                    $key = array_search($action['url'], $isResult);
-                    if ($action['type'] == 'action' && $key !== FALSE) {
-                        $visitTime = $action['timeSpent'];
-                        $sumVisits++;
-                        $sumPaceTime += $visitTime;
-                        unset($isResult[$key]);
-                    }
+            if (strpos($date, ',') !== false && $period == 'day') {
+                $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
+                list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
+            } elseif ($period == 'month') {
+                $startDate = date('Y-m-01', strtotime($day));
+                $endDate = date('Y-m-t', strtotime($day));
+                for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
+                    $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
+                    list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
                 }
+            } else {
+                $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
+                list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
             }
 
             $avgTimeOnPage = 0;
@@ -123,24 +113,19 @@ class API extends \Piwik\Plugin\API
 
     public function getDataOfPaceTimeOnSearchResultDistribution($idSite, $period, $date, $segment = false)
     {
-        $data = $this->getVisitDetailsFromApi($idSite, $period, $date, $segment);
         $metatable = new DataTable();
-
-        foreach ($data as $row) {
-            $detail = $row->getColumn('actionDetails');
-            $isResult = array();
-            foreach ($detail as $action) {
-                if ($action['type'] == 'event' && $action['eventCategory'] == 'searchResult') {
-                    $isResult[] = $action['eventName'];
-                }
-                $key = array_search($action['url'], $isResult);
-                if ($action['type'] == 'action' && $key !== FALSE) {
-                    $visitTime = $action['timeSpent'];
-                    $metatable->addRowFromArray(array(Row::COLUMNS => array('avg_time_on_page' => $visitTime)));
-                    unset($isResult[$key]);
-                }
+        if ($period == 'month') {
+            $startDate = date('Y-m-01', strtotime($date));
+            $endDate = date('Y-m-t', strtotime($date));
+            for ($day = $startDate; $day <= $endDate; $day = date('Y-m-d', strtotime($day . ' + 1 days'))) {
+                $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
+                $this->getAvgTimeOnPageDistribution($data, $metatable);
             }
+        } else {
+            $data = $this->getVisitDetailsFromApi($idSite, $period, $date, $segment);
+            $this->getAvgTimeOnPageDistribution($data, $metatable);
         }
+        $this->getAvgTimeOnPageDistribution($data, $metatable);
         return $metatable;
     }
 
@@ -228,40 +213,20 @@ class API extends \Piwik\Plugin\API
      */
     private function getRepeatingSearchInfo($idSite, $period, $date, $segment = false, $day)
     {
+        $repeatSearchRecords = array();
         if (strpos($date, ',') !== false && $period == 'day') {
             $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
+            $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
+        } elseif ($period == 'month') {
+            $startDate = date('Y-m-01', strtotime($day));
+            $endDate = date('Y-m-t', strtotime($day));
+            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
+                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
+                $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
+            }
         } else {
             $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
-        }
-        $repeatSearchRecords = array();
-        foreach ($data as $row) {
-            $detail = $row->getColumn('actionDetails');
-            $isFirstSearch = true;
-            $repeatSearchTimes = 0;
-            $previousSearchTimeStamp = -1;
-
-            for ($index = 0; $index < count($detail); ++$index) {
-                if ($detail[$index]['type'] == 'search') {
-                    if ($isFirstSearch) {
-                        $repeatSearchTimes = 1;
-                        $previousSearchTimeStamp = $detail[$index]['timestamp'];
-                        $isFirstSearch = false;
-                    } else {
-                        $timeInterval = $detail[$index]['timestamp'] - $previousSearchTimeStamp;
-
-                        if ($timeInterval <= 180 && ($detail[$index]['timestamp'] - $previousSearchTimeStamp) >= 0) {
-                            $repeatSearchTimes++; //within specific time range, another repeat search
-                        } else {
-                            $repeatSearchRecords = $this->addRepeatSearchTimes($repeatSearchTimes, $repeatSearchRecords);
-                            $repeatSearchTimes = 1;  //reset the repeatSearchTime. Because we'll start another round calculate
-                        }
-                        $previousSearchTimeStamp = $detail[$index]['timestamp'];
-                    }
-                }
-                if ($index == (count($detail) - 1)) { //the last item in this action detail
-                    $repeatSearchRecords = $this->addRepeatSearchTimes($repeatSearchTimes, $repeatSearchRecords);
-                }
-            }
+            $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
         }
 
         if (array_key_exists(1, $repeatSearchRecords)) {
@@ -328,53 +293,21 @@ class API extends \Piwik\Plugin\API
      */
     private function getBounceSearchInfo($idSite, $period, $date, $segment = false, $day)
     {
-        if (strpos($date, ',') !== false && $period == 'day') {
-            $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
-        } else {
-            $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
-        }
-
         $bouncedSearchCount = 0;
         $totalSearchCount = 0;
-        foreach ($data as $row) {
-            $detail = $row->getColumn('actionDetails');
-            for ($index = 0; $index < count($detail); ++$index) {
-                if ($detail[$index]['type'] == 'search') {
-                    $searchWord = $detail[$index]['siteSearchKeyword'];
-                    $totalSearchCount++;
-                    $searchSuccess = false;
-                    if ($index == count($detail) - 1) {
-                        $bouncedSearchCount++;
-                    } else {
-                        if ($detail[$index - 1]['type'] === 'event' &&
-                            $detail[$index - 1]['eventCategory'] === 'searchResult' &&
-                            $detail[$index - 1]['eventAction'] === $searchWord
-                        ) {
-                            $searchSuccess = true;
-                        }
-
-                        $checkSearchSuccess = $index + 1;
-                        while ($checkSearchSuccess < count($detail)) {
-                            if ($detail[$checkSearchSuccess]['type'] === 'event' &&
-                                $detail[$checkSearchSuccess]['eventCategory'] === 'searchResult' &&
-                                $detail[$checkSearchSuccess]['eventAction'] === $searchWord
-                            ) {
-                                $searchSuccess = true;
-                                break;
-                            }
-                            if ($detail[$checkSearchSuccess]['type'] === 'search') {
-                                $searchSuccess = false;
-                                break;
-                            }
-                            $checkSearchSuccess++;
-                        }
-
-                        if (!$searchSuccess) {
-                            $bouncedSearchCount++;
-                        }
-                    }
-                }
+        if (strpos($date, ',') !== false && $period == 'day') {
+            $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
+            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+        } elseif ($period == 'month') {
+            $startDate = date('Y-m-01', strtotime($day));
+            $endDate = date('Y-m-t', strtotime($day));
+            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
+                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
+                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
             }
+        } else {
+            $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
+            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
         }
 
         return array($bouncedSearchCount, $totalSearchCount);
@@ -449,32 +382,6 @@ class API extends \Piwik\Plugin\API
         return $table;
     }
 
-    /**
-     * @param $period
-     * @param $date
-     * @return array
-     */
-    public function getDateArray($period, $date)
-    {
-        if ($date == 'yesterday') {
-            $date = date('Y-m-d', strtotime("-1 days"));
-        } elseif ($date == 'today') {
-            $date = date('Y-m-d');
-        }
-
-        $dateArray = array();
-
-        if (strpos($date, ',') !== false && $period == 'day') {
-            $spiltDate = explode(',', $date);
-            $startDate = date('Y-m-d', strtotime($spiltDate[0]));
-            $endDate = date('Y-m-d', strtotime($spiltDate[1]));
-            for ($i = $startDate; $i < $endDate; $i = date('Y-m-d', strtotime($i . ' + 1 days'))) {
-                array_push($dateArray, $i);
-            }
-            return $dateArray;
-        }
-        return $dateArray;
-    }
 
     /**
      * Another example method that returns a data table.
@@ -487,6 +394,146 @@ class API extends \Piwik\Plugin\API
     public function getSearchKeywords($idSite, $period, $date, $segment = false)
     {
         return \Piwik\Plugins\Actions\API::getInstance()->getSiteSearchKeywords($idSite, $period, $date, $segment);
+    }
+
+    /**
+     * @param $data
+     * @param $metatable
+     */
+    private function getAvgTimeOnPageDistribution($data, $metatable)
+    {
+        foreach ($data as $row) {
+            $detail = $row->getColumn('actionDetails');
+            $isResult = array();
+            foreach ($detail as $action) {
+                if ($action['type'] == 'event' && $action['eventCategory'] == 'searchResult') {
+                    $isResult[] = $action['eventName'];
+                }
+                $key = array_search($action['url'], $isResult);
+                if ($action['type'] == 'action' && $key !== FALSE) {
+                    $visitTime = $action['timeSpent'];
+                    $metatable->addRowFromArray(array(Row::COLUMNS => array('avg_time_on_page' => $visitTime, 'serverTimePretty' => $action['serverTimePretty'])));
+                    unset($isResult[$key]);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param $data
+     * @param $repeatSearchRecords
+     * @return mixed
+     */
+    private function getRepeatSearchData($data, $repeatSearchRecords)
+    {
+        foreach ($data as $row) {
+            $detail = $row->getColumn('actionDetails');
+            $isFirstSearch = true;
+            $repeatSearchTimes = 0;
+            $previousSearchTimeStamp = -1;
+            for ($index = 0; $index < count($detail); ++$index) {
+                if ($detail[$index]['type'] == 'search') {
+                    if ($isFirstSearch) {
+                        $repeatSearchTimes = 1;
+                        $previousSearchTimeStamp = $detail[$index]['timestamp'];
+                        $isFirstSearch = false;
+                    } else {
+                        $timeInterval = $detail[$index]['timestamp'] - $previousSearchTimeStamp;
+
+                        if ($timeInterval <= 180 && ($detail[$index]['timestamp'] - $previousSearchTimeStamp) >= 0) {
+                            $repeatSearchTimes++; //within specific time range, another repeat search
+                        } else {
+                            $repeatSearchRecords = $this->addRepeatSearchTimes($repeatSearchTimes, $repeatSearchRecords);
+                            $repeatSearchTimes = 1;  //reset the repeatSearchTime. Because we'll start another round calculate
+                        }
+                        $previousSearchTimeStamp = $detail[$index]['timestamp'];
+                    }
+                }
+                if ($index == (count($detail) - 1)) { //the last item in this action detail
+                    $repeatSearchRecords = $this->addRepeatSearchTimes($repeatSearchTimes, $repeatSearchRecords);
+                }
+            }
+        }
+        return $repeatSearchRecords;
+    }
+
+    /**
+     * @param $data
+     * @param $totalSearchCount
+     * @param $bouncedSearchCount
+     * @return array
+     */
+    private function getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount)
+    {
+        foreach ($data as $row) {
+            $detail = $row->getColumn('actionDetails');
+            for ($index = 0; $index < count($detail); ++$index) {
+                if ($detail[$index]['type'] == 'search') {
+                    $searchWord = $detail[$index]['siteSearchKeyword'];
+                    $totalSearchCount++;
+                    $searchSuccess = false;
+                    if ($index == count($detail) - 1) {
+                        $bouncedSearchCount++;
+                    } else {
+                        if ($detail[$index - 1]['type'] === 'event' &&
+                            $detail[$index - 1]['eventCategory'] === 'searchResult' &&
+                            $detail[$index - 1]['eventAction'] === $searchWord
+                        ) {
+                            $searchSuccess = true;
+                        }
+
+                        $checkSearchSuccess = $index + 1;
+                        while ($checkSearchSuccess < count($detail)) {
+                            if ($detail[$checkSearchSuccess]['type'] === 'event' &&
+                                $detail[$checkSearchSuccess]['eventCategory'] === 'searchResult' &&
+                                $detail[$checkSearchSuccess]['eventAction'] === $searchWord
+                            ) {
+                                $searchSuccess = true;
+                                break;
+                            }
+                            if ($detail[$checkSearchSuccess]['type'] === 'search') {
+                                $searchSuccess = false;
+                                break;
+                            }
+                            $checkSearchSuccess++;
+                        }
+
+                        if (!$searchSuccess) {
+                            $bouncedSearchCount++;
+                        }
+                    }
+                }
+            }
+        }
+        return array($totalSearchCount, $bouncedSearchCount);
+    }
+
+    /**
+     * @param $data
+     * @param $sumVisits
+     * @param $sumPaceTime
+     * @return array
+     */
+    private function getAvgTimeOnPage($data, $sumVisits, $sumPaceTime)
+    {
+        foreach ($data as $row) {
+
+            $detail = $row->getColumn('actionDetails');
+            $isResult = array();
+            foreach ($detail as $action) {
+                if ($action['type'] == 'event' && $action['eventCategory'] == 'searchResult') {
+                    $isResult[] = $action['eventName'];
+                }
+                $key = array_search($action['url'], $isResult);
+                if ($action['type'] == 'action' && $key !== FALSE) {
+                    $visitTime = $action['timeSpent'];
+                    $sumVisits++;
+                    $sumPaceTime += $visitTime;
+                    unset($isResult[$key]);
+                }
+            }
+        }
+        return array($sumVisits, $sumPaceTime);
     }
 
 }
