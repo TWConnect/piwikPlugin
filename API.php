@@ -211,7 +211,7 @@ class API extends \Piwik\Plugin\API
      * @param $day
      * @return array
      */
-    private function getRepeatingSearchInfo($idSite, $period, $date, $segment = false, $day)
+    public function getRepeatingSearchInfo($idSite, $period, $date, $segment = false, $day)
     {
         $repeatSearchRecords = array();
         if (strpos($date, ',') !== false && $period == 'day') {
@@ -251,7 +251,7 @@ class API extends \Piwik\Plugin\API
      * @param $repeatSearchRecords
      * @return mixed
      */
-    private function addRepeatSearchTimes($repeatSearchTimes, $repeatSearchRecords)
+    public function addRepeatSearchTimes($repeatSearchTimes, $repeatSearchRecords)
     {
         if (array_key_exists($repeatSearchTimes, $repeatSearchRecords) && $repeatSearchRecords[$repeatSearchTimes] > 0) {
             $repeatSearchRecords[$repeatSearchTimes]++;
@@ -291,7 +291,7 @@ class API extends \Piwik\Plugin\API
      * @param $day
      * @return array
      */
-    private function getBounceSearchInfo($idSite, $period, $date, $segment = false, $day)
+    public function getBounceSearchInfo($idSite, $period, $date, $segment = false, $day)
     {
         $bouncedSearchCount = 0;
         $totalSearchCount = 0;

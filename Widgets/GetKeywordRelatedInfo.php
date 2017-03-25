@@ -32,7 +32,7 @@ class GetKeywordRelatedInfo extends Widget
         /**
          * Set the subcategory the widget belongs to. If a subcategory is set, the widget will be shown in the UI.
          */
-        $config->setSubcategoryId(Piwik::translate('SearchMonitor_KeywordRelated'));
+        $config->setSubcategoryId(Piwik::translate('SearchMonitor_SiteSearchResult'));
 
         /**
          * Set the name of the widget belongs to.

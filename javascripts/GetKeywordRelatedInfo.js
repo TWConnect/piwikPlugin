@@ -1,7 +1,3 @@
-/**
- * Created by jxli on 09/03/2017.
- */
-
 $(document).ready(function () {
     function getTopSearchKeywords() {
         var ajaxRequest = new ajaxHelper();
@@ -15,7 +11,6 @@ $(document).ready(function () {
                 $('#keyword-list').html(response);
                 $("#keyword-list .dataTable > div.dataTableWrapper > table > tbody > tr").click(function (event) {
                     var keyword = jQuery(event.currentTarget.cells[0]).text();
-                    console.log(keyword);
                     getKeywordRelatedInfo(keyword);
                 });
             }
@@ -36,9 +31,7 @@ $(document).ready(function () {
         ajaxRequest.setCallback(
             function (response) {
                 var result = [];
-
                 var data = JSON.parse(response);
-                console.log("data:", data);
                 data.forEach(function (item) {
                     var isExisted = result.find(function (current) {
                         return current[0] === item.url;
@@ -51,16 +44,11 @@ $(document).ready(function () {
                         result.push([item.url, item.type, count.length]);
                     }
                 });
-                console.log("before:", result);
-
                 result.sort(function (a, b) {
                     return b[2] - a[2];
                 });
 
                 clearTable();
-
-                console.log("after sort:", result);
-
 
                 showRelatedInfo(result);
             }
@@ -115,7 +103,6 @@ $(document).ready(function () {
 });
 
 var showInfo = function (event, type) {
-    console.log(event, type);
     var i, tabcontent, tablinks;
     tabcontent = $(".tabcontent");
     for (i = 0; i < tabcontent.length; i++) {
