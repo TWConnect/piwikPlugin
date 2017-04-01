@@ -352,6 +352,32 @@ class API extends \Piwik\Plugin\API
         return $metatable;
     }
 
+    public function getBounceSearchCountWithoutSum($idSite, $period, $date, $segment = false)
+    {
+        $dateArray = $this->getDateArrayForEvolution($period, $date);
+        $metatable = new DataTable();
+
+        foreach ($dateArray as $day) {
+            $bouncedSearchCount = 0;
+            $totalSearchCount = 0;
+            if (strpos($date, ',') !== false && $period == 'day') {
+                $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
+                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+            } else {
+                $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
+                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+            }
+
+            $metatable->addRowFromArray(array(Row::COLUMNS => array(
+                'label' => $day,
+                'bounce_search_count' => $bouncedSearchCount,
+                'total_search_count' => $totalSearchCount
+            )));
+        }
+
+        return $metatable;
+    }
+
     public function getKeywordRelatedInfo($idSite, $period, $date, $segment = false, $reqKeyword = null)
     {
         $data = $this->getVisitDetailsFromApi($idSite, $period, $date, $segment);
