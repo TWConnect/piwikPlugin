@@ -252,115 +252,115 @@
                 });
                 bounceRateRequest.send(false);
 
-                var bounceCountRequest = new ajaxHelper();
-                bounceCountRequest.addParams({
-                    module: 'API',
-                    method: 'SearchMonitor.getBounceSearchCount',
-                    format: 'json',
-                    date: formatDate(startDateObj) + "," + piwik.endDateString,
-                    period: period
-                }, 'get');
-                bounceCountRequest.setCallback(function (response) {
-                    var parsedObj = response;
-                    var labels = parsedObj.map(function (e) {
-                        return getDateLabel(e, period);
-                    });
-                    var bounce_search_count = parsedObj.map(function (e) {
-                        return e['bounce_search_count']
-                    });
-                    var total_search_count = parsedObj.map(function (e) {
-                        return e['total_search_count']
-                    });
-                    var ctx = document.getElementById("bounce_count");
-                    var myChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    type: 'line',
-                                    label: 'Bounce Search Count',
-                                    data: bounce_search_count,
-                                    fill: false,
-                                    lineTension: 0,
-                                    borderColor: "red",
-                                    borderWidth: 2,
-                                    backgroundColor: "rgba(255,0,0,0.7)"
-                                },
-                                {
-                                    type: 'line',
-                                    label: 'Total Search Count',
-                                    data: total_search_count,
-                                    fill: false,
-                                    lineTension: 0,
-                                    borderColor: "rgba(0,177,177,1)",
-                                    backgroundColor: "rgba(0,177,177,0.7)",
-                                    borderWidth: 2
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false
-                        }
-                    });
-                });
-                bounceCountRequest.send(false);
-
-                var bounceCountRequestWithoutSum = new ajaxHelper();
-                bounceCountRequestWithoutSum.addParams({
-                    module: 'API',
-                    method: 'SearchMonitor.getBounceSearchCountWithoutSum',
-                    format: 'json',
-                    date: formatDate(startDateObj) + "," + piwik.endDateString,
-                    period: period
-                }, 'get');
-                bounceCountRequestWithoutSum.setCallback(function (response) {
-                    var parsedObj = response;
-                    var labels = parsedObj.map(function (e) {
-                        return getDateLabel(e, period);
-                    });
-                    var bounce_search_count = parsedObj.map(function (e) {
-                        return e['bounce_search_count']
-                    });
-                    var total_search_count = parsedObj.map(function (e) {
-                        return e['total_search_count']
-                    });
-                    var ctx = document.getElementById("bounce_count_month");
-                    var myChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    type: 'line',
-                                    label: 'Bounce Search Count',
-                                    data: bounce_search_count,
-                                    fill: false,
-                                    lineTension: 0,
-                                    borderColor: "red",
-                                    borderWidth: 2,
-                                    backgroundColor: "rgba(255,0,0,0.7)"
-                                },
-                                {
-                                    type: 'line',
-                                    label: 'Total Search Count',
-                                    data: total_search_count,
-                                    fill: false,
-                                    lineTension: 0,
-                                    borderColor: "rgba(0,177,177,1)",
-                                    backgroundColor: "rgba(0,177,177,0.7)",
-                                    borderWidth: 2
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false
-                        }
-                    });
-                });
-                bounceCountRequestWithoutSum.send(false);
+                // var bounceCountRequest = new ajaxHelper();
+                // bounceCountRequest.addParams({
+                //     module: 'API',
+                //     method: 'SearchMonitor.getBounceSearchCount',
+                //     format: 'json',
+                //     date: formatDate(startDateObj) + "," + piwik.endDateString,
+                //     period: period
+                // }, 'get');
+                // bounceCountRequest.setCallback(function (response) {
+                //     var parsedObj = response;
+                //     var labels = parsedObj.map(function (e) {
+                //         return getDateLabel(e, period);
+                //     });
+                //     var bounce_search_count = parsedObj.map(function (e) {
+                //         return e['bounce_search_count']
+                //     });
+                //     var total_search_count = parsedObj.map(function (e) {
+                //         return e['total_search_count']
+                //     });
+                //     var ctx = document.getElementById("bounce_count");
+                //     var myChart = new Chart(ctx, {
+                //         type: 'line',
+                //         data: {
+                //             labels: labels,
+                //             datasets: [
+                //                 {
+                //                     type: 'line',
+                //                     label: 'Bounce Search Count',
+                //                     data: bounce_search_count,
+                //                     fill: false,
+                //                     lineTension: 0,
+                //                     borderColor: "red",
+                //                     borderWidth: 2,
+                //                     backgroundColor: "rgba(255,0,0,0.7)"
+                //                 },
+                //                 {
+                //                     type: 'line',
+                //                     label: 'Total Search Count',
+                //                     data: total_search_count,
+                //                     fill: false,
+                //                     lineTension: 0,
+                //                     borderColor: "rgba(0,177,177,1)",
+                //                     backgroundColor: "rgba(0,177,177,0.7)",
+                //                     borderWidth: 2
+                //                 }
+                //             ]
+                //         },
+                //         options: {
+                //             responsive: true,
+                //             maintainAspectRatio: false
+                //         }
+                //     });
+                // });
+                // bounceCountRequest.send(false);
+                //
+                // var bounceCountRequestWithoutSum = new ajaxHelper();
+                // bounceCountRequestWithoutSum.addParams({
+                //     module: 'API',
+                //     method: 'SearchMonitor.getBounceSearchCountWithoutSum',
+                //     format: 'json',
+                //     date: formatDate(startDateObj) + "," + piwik.endDateString,
+                //     period: period
+                // }, 'get');
+                // bounceCountRequestWithoutSum.setCallback(function (response) {
+                //     var parsedObj = response;
+                //     var labels = parsedObj.map(function (e) {
+                //         return getDateLabel(e, period);
+                //     });
+                //     var bounce_search_count = parsedObj.map(function (e) {
+                //         return e['bounce_search_count']
+                //     });
+                //     var total_search_count = parsedObj.map(function (e) {
+                //         return e['total_search_count']
+                //     });
+                //     var ctx = document.getElementById("bounce_count_month");
+                //     var myChart = new Chart(ctx, {
+                //         type: 'line',
+                //         data: {
+                //             labels: labels,
+                //             datasets: [
+                //                 {
+                //                     type: 'line',
+                //                     label: 'Bounce Search Count',
+                //                     data: bounce_search_count,
+                //                     fill: false,
+                //                     lineTension: 0,
+                //                     borderColor: "red",
+                //                     borderWidth: 2,
+                //                     backgroundColor: "rgba(255,0,0,0.7)"
+                //                 },
+                //                 {
+                //                     type: 'line',
+                //                     label: 'Total Search Count',
+                //                     data: total_search_count,
+                //                     fill: false,
+                //                     lineTension: 0,
+                //                     borderColor: "rgba(0,177,177,1)",
+                //                     backgroundColor: "rgba(0,177,177,0.7)",
+                //                     borderWidth: 2
+                //                 }
+                //             ]
+                //         },
+                //         options: {
+                //             responsive: true,
+                //             maintainAspectRatio: false
+                //         }
+                //     });
+                // });
+                // bounceCountRequestWithoutSum.send(false);
                 
             });
         }

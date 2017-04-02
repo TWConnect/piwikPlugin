@@ -79,6 +79,12 @@ class API extends \Piwik\Plugin\API
             $startDate = date('Y-m-d', strtotime($spiltDate[0]));
             $endDate = date('Y-m-d', strtotime($spiltDate[1]));
 
+            if($period == 'week') {
+                $startDate = date('Y-m-d', strtotime($endDate . ' - 140 days'));
+            } elseif ($period == 'month') {
+                $startDate = date('Y-m-d', strtotime($endDate . ' - 365 days'));
+            }
+
             if ($period == 'day') {
                 $timeIncrease = ' + 1 days';
             } elseif ($period == 'week') {
@@ -283,6 +289,75 @@ class API extends \Piwik\Plugin\API
         return $metatable;
     }
 
+
+    /**
+     * @param $data
+     * @param $totalSearchCount
+     * @param $bouncedSearchCount
+     * @return array
+     */
+    private function getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount)
+    {
+//        echo 'get bounce search data ' . '<br />';
+        $searchNum = 0;
+        $failedSearch = 0;
+        $count = 0;
+
+        foreach ($data as $row) {
+            $count++;
+            $detail = $row->getColumn('actionDetails');
+            for ($index = 0; $index < count($detail); ++$index) {
+//                echo 'serverTimePretty = ' . $detail[$index]['serverTimePretty'];
+                if ($detail[$index]['type'] == 'search') {
+                    $searchWord = $detail[$index]['siteSearchKeyword'];
+                    $totalSearchCount++;
+                    $searchNum++;
+                    $searchSuccess = false;
+                    if ($index == count($detail) - 1) {
+                        $bouncedSearchCount++;
+                        $failedSearch++;
+                    } else {
+                        if ($detail[$index - 1]['type'] === 'event' &&
+                            $detail[$index - 1]['eventCategory'] === 'searchResult' &&
+                            $detail[$index - 1]['eventAction'] === $searchWord
+                        ) {
+                            $searchSuccess = true;
+                        }
+
+                        $checkSearchSuccess = $index + 1;
+                        while ($checkSearchSuccess < count($detail)) {
+                            if ($detail[$checkSearchSuccess]['type'] === 'event' &&
+                                $detail[$checkSearchSuccess]['eventCategory'] === 'searchResult' &&
+                                $detail[$checkSearchSuccess]['eventAction'] === $searchWord
+                            ) {
+                                $searchSuccess = true;
+                                break;
+                            }
+                            if ($detail[$checkSearchSuccess]['type'] === 'search') {
+                                $searchSuccess = false;
+                                break;
+                            }
+                            $checkSearchSuccess++;
+                        }
+
+                        if (!$searchSuccess) {
+                            $bouncedSearchCount++;
+                            $failedSearch++;
+                        }
+                    }
+                }
+            }
+        }
+//        echo 'data count = ' . $count . '<br />';
+
+//        if($searchNum > 0) {
+//            echo 'totalSearch num = ' . $searchNum . ' & failed Search num = ' . $failedSearch . ' <br />';
+//            echo 'totalSearchCount = ' . $totalSearchCount . ' & bouncedSearchCount = ' . $bouncedSearchCount . ' <br />';
+//        }
+
+        return array($totalSearchCount, $bouncedSearchCount);
+    }
+    
     /**
      * @param $idSite
      * @param $period
@@ -293,6 +368,7 @@ class API extends \Piwik\Plugin\API
      */
     public function getBounceSearchInfo($idSite, $period, $date, $segment = false, $day)
     {
+//        echo '$period = ' . $period . ' & date = ' . $date . ' & $day =' . $day . '<br />';
         $bouncedSearchCount = 0;
         $totalSearchCount = 0;
         if (strpos($date, ',') !== false && $period == 'day') {
@@ -301,13 +377,26 @@ class API extends \Piwik\Plugin\API
         } elseif ($period == 'month') {
             $startDate = date('Y-m-01', strtotime($day));
             $endDate = date('Y-m-t', strtotime($day));
+
+//            echo '$startDate = ' . $startDate . '$endDate = ' . $endDate . '<br />';
+//            $data = $this->getVisitDetailsFromApi($idSite, 'month', $startDate, $segment);
+//            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
             for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
+//                echo '$everyday = ' . $everyDay . '<br />';
                 $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
                 list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
             }
-        } else {
-            $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
-            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+        } elseif ($period == 'week') {
+            $startDate = date('Y-m-d', strtotime($day));
+            $endDate = date('Y-m-d', strtotime($day . ' + 7 days'));
+//            echo '$startDate = ' . $startDate . '$endDate = ' . $endDate . '<br />';
+//            $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
+//            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
+//                echo '$everyday = ' . $everyDay . '<br />';
+                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
+                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+            }
         }
 
         return array($bouncedSearchCount, $totalSearchCount);
@@ -338,7 +427,7 @@ class API extends \Piwik\Plugin\API
     {
         $dateArray = $this->getDateArrayForEvolution($period, $date);
         $metatable = new DataTable();
-
+//        echo '$period = ' . $period .' & $date = ' . $date . '<br />';
         foreach ($dateArray as $day) {
             list($bouncedSearchCount, $totalSearchCount) = $this->getBounceSearchInfo($idSite, $period, $date, $segment, $day);
 
@@ -483,56 +572,7 @@ class API extends \Piwik\Plugin\API
         return $repeatSearchRecords;
     }
 
-    /**
-     * @param $data
-     * @param $totalSearchCount
-     * @param $bouncedSearchCount
-     * @return array
-     */
-    private function getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount)
-    {
-        foreach ($data as $row) {
-            $detail = $row->getColumn('actionDetails');
-            for ($index = 0; $index < count($detail); ++$index) {
-                if ($detail[$index]['type'] == 'search') {
-                    $searchWord = $detail[$index]['siteSearchKeyword'];
-                    $totalSearchCount++;
-                    $searchSuccess = false;
-                    if ($index == count($detail) - 1) {
-                        $bouncedSearchCount++;
-                    } else {
-                        if ($detail[$index - 1]['type'] === 'event' &&
-                            $detail[$index - 1]['eventCategory'] === 'searchResult' &&
-                            $detail[$index - 1]['eventAction'] === $searchWord
-                        ) {
-                            $searchSuccess = true;
-                        }
-
-                        $checkSearchSuccess = $index + 1;
-                        while ($checkSearchSuccess < count($detail)) {
-                            if ($detail[$checkSearchSuccess]['type'] === 'event' &&
-                                $detail[$checkSearchSuccess]['eventCategory'] === 'searchResult' &&
-                                $detail[$checkSearchSuccess]['eventAction'] === $searchWord
-                            ) {
-                                $searchSuccess = true;
-                                break;
-                            }
-                            if ($detail[$checkSearchSuccess]['type'] === 'search') {
-                                $searchSuccess = false;
-                                break;
-                            }
-                            $checkSearchSuccess++;
-                        }
-
-                        if (!$searchSuccess) {
-                            $bouncedSearchCount++;
-                        }
-                    }
-                }
-            }
-        }
-        return array($totalSearchCount, $bouncedSearchCount);
-    }
+    
 
     /**
      * @param $data
