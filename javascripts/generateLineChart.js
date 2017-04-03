@@ -42,165 +42,165 @@
                     return label;
                 };
 
-                var paceTimeAvgTime = new ajaxHelper();
-                paceTimeAvgTime.addParams({
-                    module: 'API',
-                    method: 'SearchMonitor.getPaceTimeOnSearchResultTendency',
-                    format: 'json',
-                    date: formatDate(startDateObj) + "," + piwik.endDateString,
-                    period: period
-                }, 'get');
-                paceTimeAvgTime.setCallback(function (response) {
-                    var parsedObj = response;
-                    var labels = parsedObj.map(function (e) {
-                        return getDateLabel(e, period);
-                    });
-                    var average_time = parsedObj.map(function (e) {
-                        return Math.floor(parseFloat(e['avg_time_on_page']) * 100) / 100.0;
-                    });
-                    var ctx = document.getElementById("pace_time_line");
-                    var myChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    type: 'line',
-                                    label: 'Avg Time (s)',
-                                    data: average_time,
-                                    fill: false,
-                                    lineTension: 0,
-                                    borderColor: "red",
-                                    borderWidth: 2,
-                                    backgroundColor: "rgba(255,0,0,0.7)"
-                                }
-                            ]
-                        },
-                        options: {
-                            scales: {
-                                yAxes: [{
-                                    ticks: {
-                                        beginAtZero: true
-                                    }
-                                }]
-                            },
-                            responsive: true,
-                            maintainAspectRatio: false
-                        }
-                    });
-                });
-                paceTimeAvgTime.send(false);
-
-                var repeatingRateRequest = new ajaxHelper();
-                repeatingRateRequest.addParams({
-                    module: 'API',
-                    method: 'SearchMonitor.getRepeatingSearchRate',
-                    format: 'json',
-                    date: formatDate(startDateObj) + "," + piwik.endDateString,
-                    period: period
-                }, 'get');
-                repeatingRateRequest.setCallback(function (response) {
-                    var parsedObj = response;
-                    var labels = parsedObj.map(function (e) {
-                        return getDateLabel(e, period);
-                    });
-                    var repeating_rate = parsedObj.map(function (e) {
-                        return Math.floor(parseFloat(e['repeating_rate']) * 10000) / 100.0;
-                    });
-                    var ctx = document.getElementById("chart1");
-                    var myChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    type: 'line',
-                                    label: 'repeating rate (%)',
-                                    data: repeating_rate,
-                                    fill: false,
-                                    lineTension: 0,
-                                    borderColor: "red",
-                                    borderWidth: 2,
-                                    backgroundColor: "rgba(255,0,0,0.7)"
-                                }
-                            ]
-                        },
-                        options: {
-                            scales: {
-                                yAxes: [{
-                                    ticks: {
-                                        beginAtZero: true
-                                    }
-                                }]
-                            },
-                            responsive: true,
-                            maintainAspectRatio: false
-                        }
-                    });
-                });
-                repeatingRateRequest.send(false);
-
-                var repeatingCountRequest = new ajaxHelper();
-                repeatingCountRequest.addParams({
-                    module: 'API',
-                    method: 'SearchMonitor.getRepeatingSearchCount',
-                    format: 'json',
-                    date: formatDate(startDateObj) + "," + piwik.endDateString,
-                    period: period
-                }, 'get');
-                repeatingCountRequest.setCallback(function (response) {
-                    var parsedObj = response;
-                    var labels = parsedObj.map(function (e) {
-                        return getDateLabel(e, period);
-                    });
-                    var repeating_search_count = parsedObj.map(function (e) {
-                        return e['repeating_search_count']
-                    });
-                    var total_search_count = parsedObj.map(function (e) {
-                        return e['total_search_count']
-                    });
-                    var ctx = document.getElementById("chart2");
-                    var myChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    type: 'line',
-                                    label: 'repeating search count',
-                                    data: repeating_search_count,
-                                    fill: false,
-                                    lineTension: 0,
-                                    borderColor: "red",
-                                    borderWidth: 2,
-                                    backgroundColor: "rgba(255,0,0,0.7)"
-                                },
-                                {
-                                    type: 'line',
-                                    label: 'total search count',
-                                    data: total_search_count,
-                                    fill: false,
-                                    lineTension: 0,
-                                    borderColor: "rgba(0,177,177,1)",
-                                    backgroundColor: "rgba(0,177,177,0.7)",
-                                    borderWidth: 2
-                                }
-                            ]
-                        },
-                        options: {
-                            scales: {
-                                yAxes: [{
-                                    ticks: {
-                                        beginAtZero: true
-                                    }
-                                }]
-                            },
-                            responsive: true,
-                            maintainAspectRatio: false
-                        }
-                    });
-                });
-                repeatingCountRequest.send(false);
+                // var paceTimeAvgTime = new ajaxHelper();
+                // paceTimeAvgTime.addParams({
+                //     module: 'API',
+                //     method: 'SearchMonitor.getPaceTimeOnSearchResultTendency',
+                //     format: 'json',
+                //     date: formatDate(startDateObj) + "," + piwik.endDateString,
+                //     period: period
+                // }, 'get');
+                // paceTimeAvgTime.setCallback(function (response) {
+                //     var parsedObj = response;
+                //     var labels = parsedObj.map(function (e) {
+                //         return getDateLabel(e, period);
+                //     });
+                //     var average_time = parsedObj.map(function (e) {
+                //         return Math.floor(parseFloat(e['avg_time_on_page']) * 100) / 100.0;
+                //     });
+                //     var ctx = document.getElementById("pace_time_line");
+                //     var myChart = new Chart(ctx, {
+                //         type: 'line',
+                //         data: {
+                //             labels: labels,
+                //             datasets: [
+                //                 {
+                //                     type: 'line',
+                //                     label: 'Avg Time (s)',
+                //                     data: average_time,
+                //                     fill: false,
+                //                     lineTension: 0,
+                //                     borderColor: "red",
+                //                     borderWidth: 2,
+                //                     backgroundColor: "rgba(255,0,0,0.7)"
+                //                 }
+                //             ]
+                //         },
+                //         options: {
+                //             scales: {
+                //                 yAxes: [{
+                //                     ticks: {
+                //                         beginAtZero: true
+                //                     }
+                //                 }]
+                //             },
+                //             responsive: true,
+                //             maintainAspectRatio: false
+                //         }
+                //     });
+                // });
+                // paceTimeAvgTime.send(false);
+                //
+                // var repeatingRateRequest = new ajaxHelper();
+                // repeatingRateRequest.addParams({
+                //     module: 'API',
+                //     method: 'SearchMonitor.getRepeatingSearchRate',
+                //     format: 'json',
+                //     date: formatDate(startDateObj) + "," + piwik.endDateString,
+                //     period: period
+                // }, 'get');
+                // repeatingRateRequest.setCallback(function (response) {
+                //     var parsedObj = response;
+                //     var labels = parsedObj.map(function (e) {
+                //         return getDateLabel(e, period);
+                //     });
+                //     var repeating_rate = parsedObj.map(function (e) {
+                //         return Math.floor(parseFloat(e['repeating_rate']) * 10000) / 100.0;
+                //     });
+                //     var ctx = document.getElementById("chart1");
+                //     var myChart = new Chart(ctx, {
+                //         type: 'line',
+                //         data: {
+                //             labels: labels,
+                //             datasets: [
+                //                 {
+                //                     type: 'line',
+                //                     label: 'repeating rate (%)',
+                //                     data: repeating_rate,
+                //                     fill: false,
+                //                     lineTension: 0,
+                //                     borderColor: "red",
+                //                     borderWidth: 2,
+                //                     backgroundColor: "rgba(255,0,0,0.7)"
+                //                 }
+                //             ]
+                //         },
+                //         options: {
+                //             scales: {
+                //                 yAxes: [{
+                //                     ticks: {
+                //                         beginAtZero: true
+                //                     }
+                //                 }]
+                //             },
+                //             responsive: true,
+                //             maintainAspectRatio: false
+                //         }
+                //     });
+                // });
+                // repeatingRateRequest.send(false);
+                //
+                // var repeatingCountRequest = new ajaxHelper();
+                // repeatingCountRequest.addParams({
+                //     module: 'API',
+                //     method: 'SearchMonitor.getRepeatingSearchCount',
+                //     format: 'json',
+                //     date: formatDate(startDateObj) + "," + piwik.endDateString,
+                //     period: period
+                // }, 'get');
+                // repeatingCountRequest.setCallback(function (response) {
+                //     var parsedObj = response;
+                //     var labels = parsedObj.map(function (e) {
+                //         return getDateLabel(e, period);
+                //     });
+                //     var repeating_search_count = parsedObj.map(function (e) {
+                //         return e['repeating_search_count']
+                //     });
+                //     var total_search_count = parsedObj.map(function (e) {
+                //         return e['total_search_count']
+                //     });
+                //     var ctx = document.getElementById("chart2");
+                //     var myChart = new Chart(ctx, {
+                //         type: 'line',
+                //         data: {
+                //             labels: labels,
+                //             datasets: [
+                //                 {
+                //                     type: 'line',
+                //                     label: 'repeating search count',
+                //                     data: repeating_search_count,
+                //                     fill: false,
+                //                     lineTension: 0,
+                //                     borderColor: "red",
+                //                     borderWidth: 2,
+                //                     backgroundColor: "rgba(255,0,0,0.7)"
+                //                 },
+                //                 {
+                //                     type: 'line',
+                //                     label: 'total search count',
+                //                     data: total_search_count,
+                //                     fill: false,
+                //                     lineTension: 0,
+                //                     borderColor: "rgba(0,177,177,1)",
+                //                     backgroundColor: "rgba(0,177,177,0.7)",
+                //                     borderWidth: 2
+                //                 }
+                //             ]
+                //         },
+                //         options: {
+                //             scales: {
+                //                 yAxes: [{
+                //                     ticks: {
+                //                         beginAtZero: true
+                //                     }
+                //                 }]
+                //             },
+                //             responsive: true,
+                //             maintainAspectRatio: false
+                //         }
+                //     });
+                // });
+                // repeatingCountRequest.send(false);
 
                 // var bounceRateRequest = new ajaxHelper();
                 // bounceRateRequest.addParams({

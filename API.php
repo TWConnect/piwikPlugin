@@ -85,7 +85,6 @@ class API extends \Piwik\Plugin\API
     public function getPaceTimeOnSearchResultTendency($idSite, $period, $date, $segment = false)
     {
         $dateArray = $this->getDateArrayForEvolution($period, $date);
-
         $metatable = new DataTable();
 
         foreach ($dateArray as $day) {
@@ -95,19 +94,6 @@ class API extends \Piwik\Plugin\API
                 $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
                 list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
             }
-//            elseif ($period == 'month') {
-//                $startDate = date('Y-m-01', strtotime($day));
-//                $endDate = date('Y-m-t', strtotime($day));
-//                for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
-//                    $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
-//                    list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
-//                }
-//            }
-//            else {
-//                $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
-//                list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
-//            }
-
             $avgTimeOnPage = 0;
             if ($sumVisits > 0) {
                 $avgTimeOnPage = $sumPaceTime / $sumVisits;
@@ -213,20 +199,21 @@ class API extends \Piwik\Plugin\API
     public function getRepeatingSearchInfo($idSite, $period, $date, $segment = false, $day)
     {
         $repeatSearchRecords = array();
-        if (strpos($date, ',') !== false && $period == 'day') {
-            $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
-            $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
-        } elseif ($period == 'month') {
-            $startDate = date('Y-m-01', strtotime($day));
-            $endDate = date('Y-m-t', strtotime($day));
-            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
-                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
-                $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
-            }
-        } else {
+        if (strpos($date, ',') !== false) {
             $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
             $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
-        }
+        } 
+//        elseif ($period == 'month') {
+//            $startDate = date('Y-m-01', strtotime($day));
+//            $endDate = date('Y-m-t', strtotime($day));
+//            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
+//                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
+//                $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
+//            }
+//        } else {
+//            $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
+//            $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
+//        }
 
         if (array_key_exists(1, $repeatSearchRecords)) {
             $successSearchCount = $repeatSearchRecords[1];
@@ -270,7 +257,7 @@ class API extends \Piwik\Plugin\API
             if ($totalSearchCount == 0) {
                 $repeatingRate = 0;
             } else {
-                $repeatingRate = $repeatingSearchCount / $totalSearchCount;
+                $repeatingRate = ($repeatingSearchCount * 100)  / ($totalSearchCount * 1.0);
             }
 
             $metatable->addRowFromArray(array(Row::COLUMNS => array(

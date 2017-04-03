@@ -18,7 +18,7 @@ use Piwik\View;
  *
  * See {@link http://developer.piwik.org/api-reference/Piwik/Plugin/Report} for more information.
  */
-class GetRepeatingSearchRate extends Base
+class GetRepeatingSearchCount extends Base
 {
     public function getDefaultTypeViewDataTable(){
         return Evolution::ID;
@@ -39,7 +39,8 @@ class GetRepeatingSearchRate extends Base
     {
         if (!empty($this->dimension)) {
             $view->config->addTranslations(array('label' => $this->dimension->getName(),
-                'repeating_rate' => Piwik::translate('SearchMonitor_Percentage')
+                'repeating_search_count' => Piwik::translate('SearchMonitor_RepeatingSearchCount'),
+                'total_search_count' => Piwik::translate('SearchMonitor_TotalSearchCount')
             ));
         }
 
@@ -89,7 +90,7 @@ class GetRepeatingSearchRate extends Base
     {
         parent::init();
 
-        $this->name = Piwik::translate('SearchMonitor_RepeatingSearchRate');
+        $this->name = Piwik::translate('SearchMonitor_RepeatingSearchCount');
         $this->dimension = new DateDimension();
 //        $this->processedMetrics = array(
 //            new RepeatingRate()
@@ -101,10 +102,10 @@ class GetRepeatingSearchRate extends Base
             . '<b>Success Search: </b>' . Piwik::translate('SearchMonitor_SuccessSearchDocument') . '<br />';
 
         // This defines in which order your report appears in the mobile app, in the menu and in the list of widgets
-        $this->order = 1;
+        $this->order = 2;
 
         // By default standard metrics are defined but you can customize them by defining an array of metric names
-        $this->metrics = array('repeating_rate');
+        $this->metrics = array('repeating_search_count', 'total_search_count');
 
 
         // If a subcategory is specified, the report will be displayed in the menu under this menu item
