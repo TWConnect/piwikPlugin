@@ -355,28 +355,9 @@ class API extends \Piwik\Plugin\API
     {
         $bouncedSearchCount = 0;
         $totalSearchCount = 0;
-        if (strpos($date, ',') !== false && $period == 'day') {
-            $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
-            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-        } elseif ($period == 'month') {
-            $startDate = date('Y-m-01', strtotime($day));
-//            $endDate = date('Y-m-t', strtotime($day));
-
-            $data = $this->getVisitDetailsFromApi($idSite, 'month', $startDate, $segment);
-            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-//            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
-//                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
-//                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-//            }
-        } elseif ($period == 'week') {
-//            $startDate = date('Y-m-d', strtotime($day));
-//            $endDate = date('Y-m-d', strtotime($day . ' + 7 days'));
+        if (strpos($date, ',') !== false) {
             $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
             list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-//            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
-//                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
-//                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-//            }
         }
 
         return array($bouncedSearchCount, $totalSearchCount);
@@ -407,36 +388,8 @@ class API extends \Piwik\Plugin\API
     {
         $dateArray = $this->getDateArrayForEvolution($period, $date);
         $metatable = new DataTable();
-//        echo '$period = ' . $period .' & $date = ' . $date . '<br />';
         foreach ($dateArray as $day) {
             list($bouncedSearchCount, $totalSearchCount) = $this->getBounceSearchInfo($idSite, $period, $date, $segment, $day);
-
-            $metatable->addRowFromArray(array(Row::COLUMNS => array(
-                'label' => $day,
-                'bounce_search_count' => $bouncedSearchCount,
-                'total_search_count' => $totalSearchCount
-            )));
-        }
-
-        return $metatable;
-    }
-
-    public function getBounceSearchCountWithoutSum($idSite, $period, $date, $segment = false)
-    {
-        $dateArray = $this->getDateArrayForEvolution($period, $date);
-        $metatable = new DataTable();
-
-        foreach ($dateArray as $day) {
-            $bouncedSearchCount = 0;
-            $totalSearchCount = 0;
-            if (strpos($date, ',') !== false && $period == 'day') {
-                $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
-                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-            } else {
-                $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
-                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-            }
-
             $metatable->addRowFromArray(array(Row::COLUMNS => array(
                 'label' => $day,
                 'bounce_search_count' => $bouncedSearchCount,
@@ -551,8 +504,6 @@ class API extends \Piwik\Plugin\API
         }
         return $repeatSearchRecords;
     }
-
-    
 
     /**
      * @param $data
