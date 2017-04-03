@@ -110,13 +110,13 @@ class GetPaceTimeOnSearchResultTendency extends Base
      *
      * @return string
      */
-    public function render()
-    {
-        $view = new View('@SearchMonitor/GetPaceTimeOnSearchPageLine');
-        $view->name = $this->name;
-        $view->documentation = $this->getDocumentation();
-        return $view->render();
-    }
+//    public function render()
+//    {
+//        $view = new View('@SearchMonitor/GetPaceTimeOnSearchPageLine');
+//        $view->name = $this->name;
+//        $view->documentation = $this->getDocumentation();
+//        return $view->render();
+//    }
 
 
     /**

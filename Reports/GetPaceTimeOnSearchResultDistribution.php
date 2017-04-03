@@ -114,13 +114,13 @@ class GetPaceTimeOnSearchResultDistribution extends Base
      * }
      */
 
-    public function render()
-    {
-        $view = new View('@SearchMonitor/GetPaceTimeOnSearchPageBar');
-        $view->name = $this->name;
-        $view->documentation = $this->getDocumentation();
-        return $view->render();
-    }
+//    public function render()
+//    {
+//        $view = new View('@SearchMonitor/GetPaceTimeOnSearchPageBar');
+//        $view->name = $this->name;
+//        $view->documentation = $this->getDocumentation();
+//        return $view->render();
+//    }
 
     /**
      * By default your report is available to all users having at least view access. If you do not want this, you can

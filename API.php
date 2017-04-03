@@ -18,50 +18,6 @@ use Piwik\DataTable\Row;
  */
 class API extends \Piwik\Plugin\API
 {
-    /**
-     * Another example method that returns a data table.
-     * @param int $idSite
-     * @param string $period
-     * @param string $date
-     * @return DataTable
-     * @internal param bool|string $segment
-     */
-    public function getPaceTimeOnSearchResultTendency($idSite, $period, $date, $segment = false)
-    {
-        $dateArray = $this->getDateArrayForEvolution($period, $date);
-
-        $metatable = new DataTable();
-
-        foreach ($dateArray as $day) {
-            $sumPaceTime = 0;
-            $sumVisits = 0;
-            if (strpos($date, ',') !== false && $period == 'day') {
-                $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
-                list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
-            } elseif ($period == 'month') {
-                $startDate = date('Y-m-01', strtotime($day));
-                $endDate = date('Y-m-t', strtotime($day));
-                for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
-                    $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
-                    list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
-                }
-            } else {
-                $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
-                list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
-            }
-
-            $avgTimeOnPage = 0;
-            if ($sumVisits > 0) {
-                $avgTimeOnPage = $sumPaceTime / $sumVisits;
-            }
-
-            $metatable->addRowFromArray(array(Row::COLUMNS => array(
-                'label' => $day, 'avg_time_on_page' => $avgTimeOnPage)));
-        }
-
-        return $metatable;
-    }
-
 
     public function getDateArrayForEvolution($period, $date)
     {
@@ -118,20 +74,56 @@ class API extends \Piwik\Plugin\API
         ));
     }
 
+    /**
+     * Another example method that returns a data table.
+     * @param int $idSite
+     * @param string $period
+     * @param string $date
+     * @return DataTable
+     * @internal param bool|string $segment
+     */
+    public function getPaceTimeOnSearchResultTendency($idSite, $period, $date, $segment = false)
+    {
+        $dateArray = $this->getDateArrayForEvolution($period, $date);
+
+        $metatable = new DataTable();
+
+        foreach ($dateArray as $day) {
+            $sumPaceTime = 0;
+            $sumVisits = 0;
+            if (strpos($date, ',') !== false) {
+                $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
+                list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
+            }
+//            elseif ($period == 'month') {
+//                $startDate = date('Y-m-01', strtotime($day));
+//                $endDate = date('Y-m-t', strtotime($day));
+//                for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
+//                    $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
+//                    list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
+//                }
+//            }
+//            else {
+//                $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
+//                list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
+//            }
+
+            $avgTimeOnPage = 0;
+            if ($sumVisits > 0) {
+                $avgTimeOnPage = $sumPaceTime / $sumVisits;
+            }
+
+            $metatable->addRowFromArray(array(Row::COLUMNS => array(
+                'label' => $day, 'avg_time_on_page' => $avgTimeOnPage)));
+        }
+
+        return $metatable;
+    }
+
     public function getDataOfPaceTimeOnSearchResultDistribution($idSite, $period, $date, $segment = false)
     {
         $metatable = new DataTable();
-        if ($period == 'month') {
-            $startDate = date('Y-m-01', strtotime($date));
-            $endDate = date('Y-m-t', strtotime($date));
-            for ($day = $startDate; $day <= $endDate; $day = date('Y-m-d', strtotime($day . ' + 1 days'))) {
-                $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
-                $this->getAvgTimeOnPageDistribution($data, $metatable);
-            }
-        } else {
-            $data = $this->getVisitDetailsFromApi($idSite, $period, $date, $segment);
-            $this->getAvgTimeOnPageDistribution($data, $metatable);
-        }
+        $data = $this->getVisitDetailsFromApi($idSite, $period, $date, $segment);
         $this->getAvgTimeOnPageDistribution($data, $metatable);
         return $metatable;
     }
