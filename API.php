@@ -113,7 +113,8 @@ class API extends \Piwik\Plugin\API
             'idSite' => $idSite,
             'period' => $period,
             'date' => $date,
-            'segment' => $segment
+            'segment' => $segment,
+            'filter_limit' => -1
         ));
     }
 
@@ -298,24 +299,15 @@ class API extends \Piwik\Plugin\API
      */
     private function getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount)
     {
-//        echo 'get bounce search data ' . '<br />';
-        $searchNum = 0;
-        $failedSearch = 0;
-        $count = 0;
-
         foreach ($data as $row) {
-            $count++;
             $detail = $row->getColumn('actionDetails');
             for ($index = 0; $index < count($detail); ++$index) {
-//                echo 'serverTimePretty = ' . $detail[$index]['serverTimePretty'];
                 if ($detail[$index]['type'] == 'search') {
                     $searchWord = $detail[$index]['siteSearchKeyword'];
                     $totalSearchCount++;
-                    $searchNum++;
                     $searchSuccess = false;
                     if ($index == count($detail) - 1) {
                         $bouncedSearchCount++;
-                        $failedSearch++;
                     } else {
                         if ($detail[$index - 1]['type'] === 'event' &&
                             $detail[$index - 1]['eventCategory'] === 'searchResult' &&
@@ -342,18 +334,11 @@ class API extends \Piwik\Plugin\API
 
                         if (!$searchSuccess) {
                             $bouncedSearchCount++;
-                            $failedSearch++;
                         }
                     }
                 }
             }
         }
-//        echo 'data count = ' . $count . '<br />';
-
-//        if($searchNum > 0) {
-//            echo 'totalSearch num = ' . $searchNum . ' & failed Search num = ' . $failedSearch . ' <br />';
-//            echo 'totalSearchCount = ' . $totalSearchCount . ' & bouncedSearchCount = ' . $bouncedSearchCount . ' <br />';
-//        }
 
         return array($totalSearchCount, $bouncedSearchCount);
     }
@@ -368,7 +353,6 @@ class API extends \Piwik\Plugin\API
      */
     public function getBounceSearchInfo($idSite, $period, $date, $segment = false, $day)
     {
-//        echo '$period = ' . $period . ' & date = ' . $date . ' & $day =' . $day . '<br />';
         $bouncedSearchCount = 0;
         $totalSearchCount = 0;
         if (strpos($date, ',') !== false && $period == 'day') {
@@ -376,27 +360,23 @@ class API extends \Piwik\Plugin\API
             list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
         } elseif ($period == 'month') {
             $startDate = date('Y-m-01', strtotime($day));
-            $endDate = date('Y-m-t', strtotime($day));
+//            $endDate = date('Y-m-t', strtotime($day));
 
-//            echo '$startDate = ' . $startDate . '$endDate = ' . $endDate . '<br />';
-//            $data = $this->getVisitDetailsFromApi($idSite, 'month', $startDate, $segment);
-//            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
-//                echo '$everyday = ' . $everyDay . '<br />';
-                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
-                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-            }
+            $data = $this->getVisitDetailsFromApi($idSite, 'month', $startDate, $segment);
+            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+//            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
+//                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
+//                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+//            }
         } elseif ($period == 'week') {
-            $startDate = date('Y-m-d', strtotime($day));
-            $endDate = date('Y-m-d', strtotime($day . ' + 7 days'));
-//            echo '$startDate = ' . $startDate . '$endDate = ' . $endDate . '<br />';
-//            $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
-//            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
-//                echo '$everyday = ' . $everyDay . '<br />';
-                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
-                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-            }
+//            $startDate = date('Y-m-d', strtotime($day));
+//            $endDate = date('Y-m-d', strtotime($day . ' + 7 days'));
+            $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
+            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+//            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
+//                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
+//                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+//            }
         }
 
         return array($bouncedSearchCount, $totalSearchCount);
