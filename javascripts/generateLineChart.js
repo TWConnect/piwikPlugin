@@ -1,7 +1,6 @@
 (function ($, require) {
     $.holdReady(true);
     var s = setInterval(function () {
-        console.log("Chart: " + JSON.stringify(Chart));
         if (typeof Chart === "function") {
             $.holdReady(false);
             clearInterval(s);
@@ -203,54 +202,54 @@
                 });
                 repeatingCountRequest.send(false);
 
-                var bounceRateRequest = new ajaxHelper();
-                bounceRateRequest.addParams({
-                    module: 'API',
-                    method: 'SearchMonitor.getBounceSearchRate',
-                    format: 'json',
-                    date: formatDate(startDateObj) + "," + piwik.endDateString,
-                    period: period
-                }, 'get');
-                bounceRateRequest.setCallback(function (response) {
-                    var parsedObj = response;
-                    var labels = parsedObj.map(function (e) {
-                        return getDateLabel(e, period);
-                    });
-                    var bounce_search_rate = parsedObj.map(function (e) {
-                        return Math.floor(parseFloat(e['bounce_search_rate']) * 10000) / 100.0;
-                    });
-                    var ctx = document.getElementById("bounce_rate");
-                    var myChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    type: 'line',
-                                    label: 'Bounce Search Rate (%)',
-                                    data: bounce_search_rate,
-                                    fill: false,
-                                    lineTension: 0,
-                                    borderColor: "red",
-                                    borderWidth: 2,
-                                    backgroundColor: "rgba(255,0,0,0.7)"
-                                }
-                            ]
-                        },
-                        options: {
-                            scales: {
-                                yAxes: [{
-                                    ticks: {
-                                        beginAtZero: true
-                                    }
-                                }]
-                            },
-                            responsive: true,
-                            maintainAspectRatio: false
-                        }
-                    });
-                });
-                bounceRateRequest.send(false);
+                // var bounceRateRequest = new ajaxHelper();
+                // bounceRateRequest.addParams({
+                //     module: 'API',
+                //     method: 'SearchMonitor.getBounceSearchRate',
+                //     format: 'json',
+                //     date: formatDate(startDateObj) + "," + piwik.endDateString,
+                //     period: period
+                // }, 'get');
+                // bounceRateRequest.setCallback(function (response) {
+                //     var parsedObj = response;
+                //     var labels = parsedObj.map(function (e) {
+                //         return getDateLabel(e, period);
+                //     });
+                //     var bounce_search_rate = parsedObj.map(function (e) {
+                //         return Math.floor(parseFloat(e['bounce_search_rate']) * 10000) / 100.0;
+                //     });
+                //     var ctx = document.getElementById("bounce_rate");
+                //     var myChart = new Chart(ctx, {
+                //         type: 'line',
+                //         data: {
+                //             labels: labels,
+                //             datasets: [
+                //                 {
+                //                     type: 'line',
+                //                     label: 'Bounce Search Rate (%)',
+                //                     data: bounce_search_rate,
+                //                     fill: false,
+                //                     lineTension: 0,
+                //                     borderColor: "red",
+                //                     borderWidth: 2,
+                //                     backgroundColor: "rgba(255,0,0,0.7)"
+                //                 }
+                //             ]
+                //         },
+                //         options: {
+                //             scales: {
+                //                 yAxes: [{
+                //                     ticks: {
+                //                         beginAtZero: true
+                //                     }
+                //                 }]
+                //             },
+                //             responsive: true,
+                //             maintainAspectRatio: false
+                //         }
+                //     });
+                // });
+                // bounceRateRequest.send(false);
 
                 // var bounceCountRequest = new ajaxHelper();
                 // bounceCountRequest.addParams({

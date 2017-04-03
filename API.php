@@ -412,7 +412,7 @@ class API extends \Piwik\Plugin\API
             if ($totalSearchCount == 0) {
                 $bounceRate = 0;
             } else {
-                $bounceRate = $bouncedSearchCount / $totalSearchCount;
+                $bounceRate = ($bouncedSearchCount * 100) / ($totalSearchCount * 1.0);
             }
             $metatable->addRowFromArray(array(Row::COLUMNS => array(
                 'label' => $day,

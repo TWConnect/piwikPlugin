@@ -2,7 +2,6 @@
     $.holdReady(true);
     var s = setInterval(function () {
 
-        console.log("Chart: " + JSON.stringify(Chart));
         if (typeof Chart === "function") {
             $.holdReady(false);
             clearInterval(s);
