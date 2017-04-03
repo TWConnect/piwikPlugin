@@ -79,23 +79,12 @@ class GetRepeatingSearchRate extends Base
      * }
      */
 
-//    public function render()
-//    {
-//        $view = new View('@SearchMonitor/GetRepeatingSearchRate');
-//        $view->name = $this->name;
-//        $view->doc = $this->documentation;
-//        return $view->render();
-//    }
-
     protected function init()
     {
         parent::init();
 
         $this->name = Piwik::translate('SearchMonitor_RepeatingSearchRate');
         $this->dimension = new DateDimension();
-//        $this->processedMetrics = array(
-//            new RepeatingRate()
-//        );
         $this->documentation = Piwik::translate('SearchMonitor_RepeatingSearchRateDocument') . '<br /><br />'
             . '<b>Repeating Search Rate = </b>' . Piwik::translate('SearchMonitor_RepeatingSearchRateCalculate') . '<br />'
             . '<b>Total Search Amount = </b>' . Piwik::translate('SearchMonitor_TotalSearchAmountCalculate') . '<br /><br />'
