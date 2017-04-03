@@ -35,19 +35,19 @@ class GetSearchKeywords extends Base
         // By default standard metrics are defined but you can customize them by defining an array of metric names
          $this->metrics       = array('nb_visits');
 
-        // Uncomment the next line if your report does not contain any processed metrics, otherwise default
-        // processed metrics will be assigned
-        // $this->processedMetrics = array();
+//         Uncomment the next line if your report does not contain any processed metrics, otherwise default
+//         processed metrics will be assigned
+         $this->processedMetrics = array();
 
-        // Uncomment the next line if your report defines goal metrics
-        // $this->hasGoalMetrics = true;
+//         Uncomment the next line if your report defines goal metrics
+//         $this->hasGoalMetrics = true;
 
-        // Uncomment the next line if your report should be able to load subtables. You can define any action here
-        // $this->actionToLoadSubTables = $this->action;
+//         Uncomment the next line if your report should be able to load subtables. You can define any action here
+//         $this->actionToLoadSubTables = $this->action;
 
-        // Uncomment the next line if your report always returns a constant count of rows, for instance always
-        // 24 rows for 1-24hours
-        // $this->constantRowsCount = true;
+//         Uncomment the next line if your report always returns a constant count of rows, for instance always
+//         24 rows for 1-24hours
+//         $this->constantRowsCount = true;
 
         // If a subcategory is specified, the report will be displayed in the menu under this menu item
     }
@@ -80,7 +80,7 @@ class GetSearchKeywords extends Base
      */
     public function getRelatedReports()
     {
-        return array(); // eg return array(new XyzReport());
+//        return array(); // eg return array(new XyzReport());
     }
 
     /**

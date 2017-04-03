@@ -202,18 +202,7 @@ class API extends \Piwik\Plugin\API
         if (strpos($date, ',') !== false) {
             $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
             $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
-        } 
-//        elseif ($period == 'month') {
-//            $startDate = date('Y-m-01', strtotime($day));
-//            $endDate = date('Y-m-t', strtotime($day));
-//            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
-//                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
-//                $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
-//            }
-//        } else {
-//            $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
-//            $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
-//        }
+        }
 
         if (array_key_exists(1, $repeatSearchRecords)) {
             $successSearchCount = $repeatSearchRecords[1];
@@ -420,7 +409,13 @@ class API extends \Piwik\Plugin\API
      */
     public function getSearchKeywords($idSite, $period, $date, $segment = false)
     {
-        return \Piwik\Plugins\Actions\API::getInstance()->getSiteSearchKeywords($idSite, $period, $date, $segment);
+        return \Piwik\API\Request::processRequest('Actions.getSiteSearchKeywords', array(
+            'idSite' => $idSite,
+            'period' => $period,
+            'date' => $date,
+            'segment' => $segment,
+            'filter_limit' => -1
+        ));
     }
 
     /**

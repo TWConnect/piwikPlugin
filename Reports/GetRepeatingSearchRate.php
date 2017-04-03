@@ -10,6 +10,8 @@ namespace Piwik\Plugins\SearchMonitor\Reports;
 
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
+use Piwik\Plugins\SearchMonitor\Columns\DateDimension;
+use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Evolution;
 use Piwik\View;
 
 
