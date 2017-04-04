@@ -18,7 +18,6 @@ use Piwik\DataTable\Row;
  */
 class API extends \Piwik\Plugin\API
 {
-
     public function getDateArrayForEvolution($period, $date)
     {
         if ($date == 'yesterday') {
@@ -38,7 +37,7 @@ class API extends \Piwik\Plugin\API
             if($period == 'week') {
                 $startDate = date('Y-m-d', strtotime($endDate . ' - 140 days'));
             } elseif ($period == 'month') {
-                $startDate = date('Y-m-d', strtotime($endDate . ' - 365 days'));
+                $startDate = date('Y-m-01', strtotime($endDate . ' - 365 days'));
             }
 
             if ($period == 'day') {
@@ -49,8 +48,23 @@ class API extends \Piwik\Plugin\API
                 $timeIncrease = ' + 1 month';
             }
 
+            $mons = array(1 => "Jan", 2 => "Feb", 3 => "Mar", 4 => "Apr", 5 => "May", 6 => "Jun", 7 => "Jul", 8 => "Aug", 9 => "Sep", 10 => "Oct", 11 => "Nov", 12 => "Dec");
+
+
             for ($i = $startDate; $i <= $endDate; $i = date('Y-m-d', strtotime($i . $timeIncrease))) {
-                array_push($dateArray, $i);
+                if($period == 'day'){
+                    $dateArray[$i] = $i;
+                }
+                elseif ($period == 'week'){
+                    $end = date('Y-m-d', strtotime($i . ' + 6 days'));
+                    $label = $i . '-' . $end;
+                    $dateArray[$i] = $label;
+                }
+                elseif ($period == 'month'){
+                    $d = date_parse_from_format('Y-m-d', $i);
+                    $label = $mons[$d['month']] . ' ' . $d['year'];
+                    $dateArray[$i] = $label;
+                }
             }
             return $dateArray;
         }
@@ -87,7 +101,7 @@ class API extends \Piwik\Plugin\API
         $dateArray = $this->getDateArrayForEvolution($period, $date);
         $metatable = new DataTable();
 
-        foreach ($dateArray as $day) {
+        foreach ($dateArray as $day => $label) {
             $sumPaceTime = 0;
             $sumVisits = 0;
             if (strpos($date, ',') !== false) {
@@ -100,7 +114,7 @@ class API extends \Piwik\Plugin\API
             }
 
             $metatable->addRowFromArray(array(Row::COLUMNS => array(
-                'label' => $day, 'avg_time_on_page' => $avgTimeOnPage)));
+                'label' => $label, 'avg_time_on_page' => $avgTimeOnPage)));
         }
 
         return $metatable;
@@ -175,11 +189,11 @@ class API extends \Piwik\Plugin\API
         $dateArray = $this->getDateArrayForEvolution($period, $date);
         $metatable = new DataTable();
 
-        foreach ($dateArray as $day) {
+        foreach ($dateArray as $day => $label) {
             list($repeatingSearchCount, $totalSearchCount) = $this->getRepeatingSearchInfo($idSite, $period, $date, $segment, $day);
 
             $metatable->addRowFromArray(array(Row::COLUMNS => array(
-                'label' => $day,
+                'label' => $label,
                 'repeating_search_count' => $repeatingSearchCount,
                 'total_search_count' => $totalSearchCount,
             )));
@@ -241,7 +255,7 @@ class API extends \Piwik\Plugin\API
         $dateArray = $this->getDateArrayForEvolution($period, $date);
         $metatable = new DataTable();
 
-        foreach ($dateArray as $day) {
+        foreach ($dateArray as $day => $label) {
             list($repeatingSearchCount, $totalSearchCount) = $this->getRepeatingSearchInfo($idSite, $period, $date, $segment, $day);
             if ($totalSearchCount == 0) {
                 $repeatingRate = 0;
@@ -250,7 +264,7 @@ class API extends \Piwik\Plugin\API
             }
 
             $metatable->addRowFromArray(array(Row::COLUMNS => array(
-                'label' => $day,
+                'label' => $label,
                 'repeating_rate' => $repeatingRate
             )));
         }
@@ -336,7 +350,7 @@ class API extends \Piwik\Plugin\API
         $dateArray = $this->getDateArrayForEvolution($period, $date);
         $metatable = new DataTable();
 
-        foreach ($dateArray as $day) {
+        foreach ($dateArray as $day => $label) {
             list($bouncedSearchCount, $totalSearchCount) = $this->getBounceSearchInfo($idSite, $period, $date, $segment, $day);
             if ($totalSearchCount == 0) {
                 $bounceRate = 0;
@@ -344,7 +358,7 @@ class API extends \Piwik\Plugin\API
                 $bounceRate = ($bouncedSearchCount * 100) / ($totalSearchCount * 1.0);
             }
             $metatable->addRowFromArray(array(Row::COLUMNS => array(
-                'label' => $day,
+                'label' => $label,
                 'bounce_search_rate' => $bounceRate
             )));
         }
@@ -356,10 +370,10 @@ class API extends \Piwik\Plugin\API
     {
         $dateArray = $this->getDateArrayForEvolution($period, $date);
         $metatable = new DataTable();
-        foreach ($dateArray as $day) {
+        foreach ($dateArray as $day => $label) {
             list($bouncedSearchCount, $totalSearchCount) = $this->getBounceSearchInfo($idSite, $period, $date, $segment, $day);
             $metatable->addRowFromArray(array(Row::COLUMNS => array(
-                'label' => $day,
+                'label' => $label,
                 'bounce_search_count' => $bouncedSearchCount,
                 'total_search_count' => $totalSearchCount
             )));
