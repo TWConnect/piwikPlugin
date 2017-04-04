@@ -56,8 +56,9 @@ class API extends \Piwik\Plugin\API
                     $dateArray[$i] = $i;
                 }
                 elseif ($period == 'week'){
-                    $end = date('Y-m-d', strtotime($i . ' + 6 days'));
-                    $label = $i . '-' . $end;
+                    $start = date('Y/m/d', strtotime($i));
+                    $end = date('Y/m/d', strtotime($i . ' + 6 days'));
+                    $label = $start . ' - ' . $end;
                     $dateArray[$i] = $label;
                 }
                 elseif ($period == 'month'){
