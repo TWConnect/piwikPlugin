@@ -335,9 +335,36 @@ class API extends \Piwik\Plugin\API
      */
     public function getBounceSearchInfo($idSite, $period, $date, $segment = false, $day)
     {
+//        $bouncedSearchCount = 0;
+//        $totalSearchCount = 0;
+//        if (strpos($date, ',') !== false) {
+//            $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
+//            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+//        }
+//
+//        return array($bouncedSearchCount, $totalSearchCount);
+
         $bouncedSearchCount = 0;
         $totalSearchCount = 0;
-        if (strpos($date, ',') !== false) {
+        if (strpos($date, ',') !== false && $period == 'day') {
+            $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
+            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+        } elseif (strpos($date, ',') !== false && $period == 'month') {
+            $startDate = date('Y-m-01', strtotime($day));
+            $endDate = date('Y-m-t', strtotime($day));
+            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
+                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
+                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+            }
+        } elseif (strpos($date, ',') !== false && $period == 'week') {
+            $startDate = date('Y-m-d', strtotime($day));
+            $endDate = date('Y-m-d', strtotime($day . ' + 6 days'));
+            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
+                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
+                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+            }
+        }
+        else {
             $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
             list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
         }
