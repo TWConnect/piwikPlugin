@@ -349,18 +349,21 @@ class API extends \Piwik\Plugin\API
         if (strpos($date, ',') !== false && $period == 'day') {
             $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
             list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-        } elseif (strpos($date, ',') !== false && $period == 'month') {
+        } elseif ($period == 'month') {
             $startDate = date('Y-m-01', strtotime($day));
             $endDate = date('Y-m-t', strtotime($day));
             for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
                 $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
+                echo 'month $everyday = ' . $everyDay . ' & data count = ' . $data -> getRowsCount() . '<br />';
                 list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
             }
-        } elseif (strpos($date, ',') !== false && $period == 'week') {
+        } elseif ($period == 'week') {
             $startDate = date('Y-m-d', strtotime($day));
             $endDate = date('Y-m-d', strtotime($day . ' + 6 days'));
             for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
                 $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
+
+                echo 'week $everyday = ' . $everyDay . ' & data count = ' . $data -> getRowsCount() . '<br />';
                 list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
             }
         }
