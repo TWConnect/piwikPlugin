@@ -40,7 +40,7 @@ class API extends \Piwik\Plugin\API
                 $startDate = date('Y-m-01', strtotime($endDate . ' - 365 days'));
             }
 
-            if ($period == 'day') {
+            if ($period == 'day' || $period == 'range') {
                 $timeIncrease = ' + 1 days';
             } elseif ($period == 'week') {
                 $timeIncrease = ' + 7 days';
@@ -49,7 +49,6 @@ class API extends \Piwik\Plugin\API
             }
 
             $mons = array(1 => "Jan", 2 => "Feb", 3 => "Mar", 4 => "Apr", 5 => "May", 6 => "Jun", 7 => "Jul", 8 => "Aug", 9 => "Sep", 10 => "Oct", 11 => "Nov", 12 => "Dec");
-
 
             for ($i = $startDate; $i <= $endDate; $i = date('Y-m-d', strtotime($i . $timeIncrease))) {
                 if($period == 'day'){
