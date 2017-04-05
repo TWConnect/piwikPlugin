@@ -85,7 +85,7 @@ class API extends \Piwik\Plugin\API
             'date' => $date,
             'segment' => $segment,
             'filter_offset' => $filter_offset,
-            'filter_limit' => 10
+            'filter_limit' => 100
         ));
     }
 
@@ -365,19 +365,19 @@ class API extends \Piwik\Plugin\API
             $startDate = date('Y-m-01', strtotime($day));
             $endDate = date('Y-m-t', strtotime($day));
             for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
-                $filter_offset = 0;
-                $data = $this->getVisitDetailsFromApiByPage($idSite, 'day', $everyDay, $segment, $filter_offset);
-                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-
-                while($data -> getRowsCount() >= 10){
-                    $filter_offset += 10;
-                    echo '$filter_offset = ' . $filter_offset . '<br />';
-                    $data = $this->getVisitDetailsFromApiByPage($idSite, 'day', $everyDay, $segment, $filter_offset);
-                    list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-                }
-
-//                echo 'month $everyday = ' . $everyDay . ' & data count = ' . $data -> getRowsCount() . '<br />';
+//                $filter_offset = 0;
+//                $data = $this->getVisitDetailsFromApiByPage($idSite, 'day', $everyDay, $segment, $filter_offset);
 //                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+//
+//                while($data -> getRowsCount() >= 100){
+//                    $filter_offset = $filter_offset + 100;
+//                    echo 'day = ' . $everyDay . ' &filter_offset = ' . $filter_offset . '<br />';
+//                    $data = $this->getVisitDetailsFromApiByPage($idSite, 'day', $everyDay, $segment, $filter_offset);
+//                    list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+//                }
+
+                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
+                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
             }
         } elseif ($period == 'week') {
             $startDate = date('Y-m-d', strtotime($day));
@@ -385,7 +385,7 @@ class API extends \Piwik\Plugin\API
             for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
                 $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
 
-                echo 'week $everyday = ' . $everyDay . ' & data count = ' . $data -> getRowsCount() . '<br />';
+//                echo 'week $everyday = ' . $everyDay . ' & data count = ' . $data -> getRowsCount() . '<br />';
                 list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
             }
         }
