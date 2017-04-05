@@ -365,6 +365,7 @@ class API extends \Piwik\Plugin\API
             $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
             list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
             while($data->getRowsCount() >= 100){
+                echo 'filter_offset = ' . $filter_offset . ' & data row count = ' . $data->getRowsCount() . '<br />';
                 $filter_offset = $filter_offset + 100;
                 $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
                 list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
