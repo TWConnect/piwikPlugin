@@ -77,6 +77,18 @@ class API extends \Piwik\Plugin\API
      * @param $day
      * @return mixed
      */
+    public function getVisitDetailsFromApiByPage($idSite, $period, $date, $segment = false, $filter_offset = 0)
+    {
+        return \Piwik\API\Request::processRequest('Live.getLastVisitsDetails', array(
+            'idSite' => $idSite,
+            'period' => $period,
+            'date' => $date,
+            'segment' => $segment,
+            'filter_offset' => $filter_offset,
+            'filter_limit' => 100
+        ));
+    }
+
     public function getVisitDetailsFromApi($idSite, $period, $date, $segment = false)
     {
         return \Piwik\API\Request::processRequest('Live.getLastVisitsDetails', array(
@@ -84,7 +96,7 @@ class API extends \Piwik\Plugin\API
             'period' => $period,
             'date' => $date,
             'segment' => $segment,
-            'filter_limit' => -1
+            'filter_limit' => 100
         ));
     }
 
@@ -353,9 +365,19 @@ class API extends \Piwik\Plugin\API
             $startDate = date('Y-m-01', strtotime($day));
             $endDate = date('Y-m-t', strtotime($day));
             for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
-                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
-                echo 'month $everyday = ' . $everyDay . ' & data count = ' . $data -> getRowsCount() . '<br />';
+                $filter_offset = 0;
+                $data = $this->getVisitDetailsFromApiByPage($idSite, 'day', $everyDay, $segment, $filter_offset);
                 list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+
+                while($data -> getRowsCount() >= 100){
+                    $filter_offset += 100;
+                    echo '$filter_offset = ' . $filter_offset . '<br />';
+                    $data = $this->getVisitDetailsFromApiByPage($idSite, 'day', $everyDay, $segment, $filter_offset);
+                    list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+                }
+
+//                echo 'month $everyday = ' . $everyDay . ' & data count = ' . $data -> getRowsCount() . '<br />';
+//                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
             }
         } elseif ($period == 'week') {
             $startDate = date('Y-m-d', strtotime($day));
