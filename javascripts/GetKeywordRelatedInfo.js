@@ -10,8 +10,8 @@ $(document).ready(function () {
             function (response) {
                 $('#keyword-list').html(response);
                 $("#keyword-list .dataTable > div.dataTableWrapper > table > tbody > tr").click(function (event) {
-                    var keyword = jQuery(event.currentTarget.cells[0]).text();
-                    getKeywordRelatedInfo(keyword);
+                    var span = jQuery(event.currentTarget.cells[0]).find('span .value');
+                    getKeywordRelatedInfo(span.text());
                 });
             }
         );
@@ -20,6 +20,7 @@ $(document).ready(function () {
     }
 
     function getKeywordRelatedInfo(keyword) {
+
         var ajaxRequest = new ajaxHelper();
         ajaxRequest.setLoadingElement('#ajaxLoadingMyTWKeywords');
         ajaxRequest.addParams({
