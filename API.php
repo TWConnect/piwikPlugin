@@ -85,7 +85,7 @@ class API extends \Piwik\Plugin\API
             'date' => $date,
             'segment' => $segment,
             'filter_offset' => $filter_offset,
-            'filter_limit' => 100
+            'filter_limit' => 10
         ));
     }
 
@@ -369,8 +369,8 @@ class API extends \Piwik\Plugin\API
                 $data = $this->getVisitDetailsFromApiByPage($idSite, 'day', $everyDay, $segment, $filter_offset);
                 list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
 
-                while($data -> getRowsCount() >= 100){
-                    $filter_offset += 100;
+                while($data -> getRowsCount() >= 10){
+                    $filter_offset += 10;
                     echo '$filter_offset = ' . $filter_offset . '<br />';
                     $data = $this->getVisitDetailsFromApiByPage($idSite, 'day', $everyDay, $segment, $filter_offset);
                     list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
