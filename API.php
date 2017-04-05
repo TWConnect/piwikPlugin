@@ -96,7 +96,7 @@ class API extends \Piwik\Plugin\API
             'period' => $period,
             'date' => $date,
             'segment' => $segment,
-            'filter_limit' => 100
+            'filter_limit' => -1
         ));
     }
 
@@ -347,14 +347,31 @@ class API extends \Piwik\Plugin\API
      */
     public function getBounceSearchInfo($idSite, $period, $date, $segment = false, $day)
     {
+//        $bouncedSearchCount = 0;
+//        $totalSearchCount = 0;
+//        if (strpos($date, ',') !== false) {
+//            $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
+//            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+//
+//        }
+//
+//        return array($bouncedSearchCount, $totalSearchCount);
+
         $bouncedSearchCount = 0;
         $totalSearchCount = 0;
         if (strpos($date, ',') !== false) {
-            $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
+            $filter_offset = 0;
+            $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
             list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+            while($data->getRowsCount() >= 100){
+                $filter_offset += 100;
+                $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
+                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+            }
         }
 
         return array($bouncedSearchCount, $totalSearchCount);
+
 
 //        $bouncedSearchCount = 0;
 //        $totalSearchCount = 0;
