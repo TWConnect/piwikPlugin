@@ -327,9 +327,6 @@ class Visitor implements VisitorInterface
             unset($actionDetail['url_prefix']);
         }
 
-        // If the visitor converted a goal, we shall select all Goals
-        $goalDetails = $model->queryGoalConversionsForVisit($idVisit, $actionsLimit);
-
         $actionDetails = array_values($actionDetails);
 
         // Enrich with time spent per action
@@ -365,14 +362,12 @@ class Visitor implements VisitorInterface
 
         }
 
-        $actions = array_merge($actionDetails, $goalDetails);
+        $actions = $actionDetails;
         usort($actions, array('static', 'sortByServerTime'));
 
         foreach ($actions as &$action) {
             unset($action['idlink_va']);
         }
-
-        $visitorDetailsArray['goalConversions'] = count($goalDetails);
 
         $visitorDetailsArray['actionDetails'] = $actions;
 
