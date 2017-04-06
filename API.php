@@ -115,8 +115,6 @@ class API extends \Piwik\Plugin\API
             $visitorFactory = new VisitorFactory();
             $website = new Site($idSite);
             $timezone = $website->getTimezone();
-            $currency = $website->getCurrency();
-            $currencies = APISitesManager::getInstance()->getCurrencySymbols();
 
             // live api is not summable, prevents errors like "Unexpected ECommerce status value"
             $table->deleteRow(DataTable::ID_SUMMARY_ROW);
