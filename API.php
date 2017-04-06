@@ -195,17 +195,6 @@ class API extends \Piwik\Plugin\API
         return $this->getLastVisitsDetails($idSite, $period, $date, $segment, $filter_limit, $filter_offset, false);
     }
 
-    public function getVisitDetailsFromApi($idSite, $period, $date, $segment = false)
-    {
-        return \Piwik\API\Request::processRequest('Live.getLastVisitsDetails', array(
-            'idSite' => $idSite,
-            'period' => $period,
-            'date' => $date,
-            'segment' => $segment,
-            'filter_limit' => -1
-        ));
-    }
-
     /**
      * Another example method that returns a data table.
      * @param int $idSite
@@ -223,8 +212,14 @@ class API extends \Piwik\Plugin\API
             $sumPaceTime = 0;
             $sumVisits = 0;
             if (strpos($date, ',') !== false) {
-                $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
+                $filter_offset = 0;
+                $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
                 list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
+                while ($data->getRowsCount() >= 100) {
+                    $filter_offset = $filter_offset + 100;
+                    $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
+                    list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
+                }
             }
             $avgTimeOnPage = 0;
             if ($sumVisits > 0) {
@@ -241,8 +236,14 @@ class API extends \Piwik\Plugin\API
     public function getDataOfPaceTimeOnSearchResultDistribution($idSite, $period, $date, $segment = false)
     {
         $metatable = new DataTable();
-        $data = $this->getVisitDetailsFromApi($idSite, $period, $date, $segment);
+        $filter_offset = 0;
+        $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset);
         $this->getAvgTimeOnPageDistribution($data, $metatable);
+        while ($data->getRowsCount() >= 100) {
+            $filter_offset = $filter_offset + 100;
+            $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset);
+            $this->getAvgTimeOnPageDistribution($data, $metatable);
+        }
         return $metatable;
     }
 
@@ -332,8 +333,14 @@ class API extends \Piwik\Plugin\API
     {
         $repeatSearchRecords = array();
         if (strpos($date, ',') !== false) {
-            $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
+            $filter_offset = 0;
+            $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
             $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
+            while ($data->getRowsCount() >= 100) {
+                $filter_offset = $filter_offset + 100;
+                $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
+                $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
+            }
         }
 
         if (array_key_exists(1, $repeatSearchRecords)) {
@@ -509,30 +516,14 @@ class API extends \Piwik\Plugin\API
 
     public function getKeywordRelatedInfo($idSite, $period, $date, $segment = false, $reqKeyword = null)
     {
-        $data = $this->getVisitDetailsFromApi($idSite, $period, $date, $segment);
         $table = new DataTable();
-        foreach ($data as $row) {
-            $detail = $row->getColumn('actionDetails');
-            foreach ($detail as $action) {
-
-                if ($action['type'] == 'event' && $action['eventCategory'] == 'searchResult'
-                    && $action['eventName'] != "null"
-                ) {
-
-                    $keyword = $action['eventAction'];
-                    if ($reqKeyword != null && $reqKeyword == $keyword) {
-                        $srcURL = $action['eventName'];
-                        $type = 'content';
-                        if (preg_match("/^[^\/]+\/\/[^\/]+\/groups\/[^\/]+$/", $srcURL)) {
-                            $type = 'group';
-                        } else if (preg_match("/^[^\/]+\/\/[^\/]+\/people\/[^\/]+$/", $srcURL)) {
-                            $type = 'people';
-                        }
-                        $table->addRowFromArray(array(Row::COLUMNS => array(
-                            'url' => $srcURL, 'type' => $type)));
-                    }
-                }
-            }
+        $filter_offset = 0;
+        $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset);
+        $this->getRelatedData($reqKeyword, $data, $table);
+        while ($data->getRowsCount() >= 100) {
+            $filter_offset = $filter_offset + 100;
+            $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset);
+            $this->getRelatedData($reqKeyword, $data, $table);
         }
         return $table;
     }
@@ -644,6 +635,38 @@ class API extends \Piwik\Plugin\API
             }
         }
         return array($sumVisits, $sumPaceTime);
+    }
+
+    /**
+     * @param $reqKeyword
+     * @param $data
+     * @param $table
+     */
+    private function getRelatedData($reqKeyword, $data, $table)
+    {
+        foreach ($data as $row) {
+            $detail = $row->getColumn('actionDetails');
+            foreach ($detail as $action) {
+
+                if ($action['type'] == 'event' && $action['eventCategory'] == 'searchResult'
+                    && $action['eventName'] != "null"
+                ) {
+
+                    $keyword = $action['eventAction'];
+                    if ($reqKeyword != null && $reqKeyword == $keyword) {
+                        $srcURL = $action['eventName'];
+                        $type = 'content';
+                        if (preg_match("/^[^\/]+\/\/[^\/]+\/groups\/[^\/]+$/", $srcURL)) {
+                            $type = 'group';
+                        } else if (preg_match("/^[^\/]+\/\/[^\/]+\/people\/[^\/]+$/", $srcURL)) {
+                            $type = 'people';
+                        }
+                        $table->addRowFromArray(array(Row::COLUMNS => array(
+                            'url' => $srcURL, 'type' => $type)));
+                    }
+                }
+            }
+        }
     }
 
 }
