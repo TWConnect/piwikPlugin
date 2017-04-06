@@ -316,9 +316,6 @@ class Visitor implements VisitorInterface
                 unset($actionDetail['eventAction']);
             }
 
-            $actionDetail['interactionPosition'] = $actionDetail['interaction_position'];
-            unset($actionDetail['interaction_position']);
-
             // Reconstruct url from prefix
             $url = Tracker\PageUrl::reconstructNormalizedUrl($actionDetail['url'], $actionDetail['url_prefix']);
             $url = Common::unsanitizeInputValue($url);
@@ -374,31 +371,23 @@ class Visitor implements VisitorInterface
         foreach ($visitorDetailsArray['actionDetails'] as &$details) {
             switch ($details['type']) {
                 case 'goal':
-                    $details['icon'] = 'plugins/Morpheus/images/goal.png';
-                    break;
                 case Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER:
                 case Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_CART:
-                    $details['icon'] = 'plugins/Morpheus/images/' . $details['type'] . '.gif';
                     break;
                 case Action::TYPE_DOWNLOAD:
                     $details['type'] = 'download';
-                    $details['icon'] = 'plugins/Morpheus/images/download.png';
                     break;
                 case Action::TYPE_OUTLINK:
                     $details['type'] = 'outlink';
-                    $details['icon'] = 'plugins/Morpheus/images/link.gif';
                     break;
                 case Action::TYPE_SITE_SEARCH:
                     $details['type'] = 'search';
-                    $details['icon'] = 'plugins/Morpheus/images/search_ico.png';
                     break;
                 case Action::TYPE_EVENT:
                     $details['type'] = 'event';
-                    $details['icon'] = 'plugins/Morpheus/images/event.png';
                     break;
                 default:
                     $details['type'] = 'action';
-                    $details['icon'] = null;
                     break;
             }
 
@@ -407,7 +396,6 @@ class Visitor implements VisitorInterface
             $details['serverTimePretty'] = $dateTimeVisit->getLocalized(Date::DATETIME_FORMAT_SHORT);
             $details['timestamp'] = $dateTimeVisit->getTimestamp();
         }
-
 
         return $visitorDetailsArray;
     }
