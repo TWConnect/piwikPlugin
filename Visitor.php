@@ -330,40 +330,6 @@ class Visitor implements VisitorInterface
         // If the visitor converted a goal, we shall select all Goals
         $goalDetails = $model->queryGoalConversionsForVisit($idVisit, $actionsLimit);
 
-        $ecommerceDetails = $model->queryEcommerceConversionsForVisit($idVisit, $actionsLimit);
-        foreach ($ecommerceDetails as &$ecommerceDetail) {
-            if ($ecommerceDetail['type'] == Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_CART) {
-                unset($ecommerceDetail['orderId']);
-                unset($ecommerceDetail['revenueSubTotal']);
-                unset($ecommerceDetail['revenueTax']);
-                unset($ecommerceDetail['revenueShipping']);
-                unset($ecommerceDetail['revenueDiscount']);
-            }
-
-            // 25.00 => 25
-            foreach ($ecommerceDetail as $column => $value) {
-                if (strpos($column, 'revenue') !== false) {
-                    if ($value == round($value)) {
-                        $ecommerceDetail[$column] = round($value);
-                    }
-                }
-            }
-        }
-
-        // Enrich ecommerce carts/orders with the list of products
-        usort($ecommerceDetails, array('static', 'sortByServerTime'));
-        foreach ($ecommerceDetails as &$ecommerceConversion) {
-            $idOrder = isset($ecommerceConversion['orderId']) ? $ecommerceConversion['orderId'] : GoalManager::ITEM_IDORDER_ABANDONED_CART;
-
-            $itemsDetails = $model->queryEcommerceItemsForOrder($idVisit, $idOrder, $actionsLimit);
-            foreach ($itemsDetails as &$detail) {
-                if ($detail['price'] == round($detail['price'])) {
-                    $detail['price'] = round($detail['price']);
-                }
-            }
-            $ecommerceConversion['itemDetails'] = $itemsDetails;
-        }
-
         $actionDetails = array_values($actionDetails);
 
         // Enrich with time spent per action
@@ -399,7 +365,7 @@ class Visitor implements VisitorInterface
 
         }
 
-        $actions = array_merge($actionDetails, $goalDetails, $ecommerceDetails);
+        $actions = array_merge($actionDetails, $goalDetails);
         usort($actions, array('static', 'sortByServerTime'));
 
         foreach ($actions as &$action) {
