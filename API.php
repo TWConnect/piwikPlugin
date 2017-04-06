@@ -127,20 +127,6 @@ class API extends \Piwik\Plugin\API
                 $visitor = $visitorFactory->create($visitorDetailsArray);
                 $visitorDetailsArray = $visitor->getAllVisitorDetails();
 
-                $visitorDetailsArray['siteCurrency'] = $currency;
-                $visitorDetailsArray['siteCurrencySymbol'] = @$currencies[$visitorDetailsArray['siteCurrency']];
-                $visitorDetailsArray['serverTimestamp'] = $visitorDetailsArray['lastActionTimestamp'];
-
-                $dateTimeVisit = Date::factory($visitorDetailsArray['lastActionTimestamp'], $timezone);
-                if ($dateTimeVisit) {
-                    $visitorDetailsArray['serverTimePretty'] = $dateTimeVisit->getLocalized(Date::TIME_FORMAT);
-                    $visitorDetailsArray['serverDatePretty'] = $dateTimeVisit->getLocalized(Date::DATE_FORMAT_LONG);
-                }
-
-                $dateTimeVisitFirstAction = Date::factory($visitorDetailsArray['firstActionTimestamp'], $timezone);
-                $visitorDetailsArray['serverDatePrettyFirstAction'] = $dateTimeVisitFirstAction->getLocalized(Date::DATE_FORMAT_LONG);
-                $visitorDetailsArray['serverTimePrettyFirstAction'] = $dateTimeVisitFirstAction->getLocalized(Date::TIME_FORMAT);
-
                 $visitorDetailsArray['actionDetails'] = array();
                 if (!$doNotFetchActions) {
                     $visitorDetailsArray = Visitor::enrichVisitorArrayWithActions($visitorDetailsArray, $actionsLimit, $timezone);
