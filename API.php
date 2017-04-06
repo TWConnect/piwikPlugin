@@ -8,8 +8,15 @@
  */
 namespace Piwik\Plugins\SearchMonitor;
 
+use Piwik\Common;
+use Piwik\Config;
 use Piwik\DataTable;
 use Piwik\DataTable\Row;
+use Piwik\Date;
+use Piwik\Piwik;
+use Piwik\Plugins\SitesManager\API as APISitesManager;
+use Piwik\Site;
+
 
 /**
  * API for plugin SearchMonitor
@@ -34,7 +41,7 @@ class API extends \Piwik\Plugin\API
             $startDate = date('Y-m-d', strtotime($spiltDate[0]));
             $endDate = date('Y-m-d', strtotime($spiltDate[1]));
 
-            if($period == 'week') {
+            if ($period == 'week') {
                 $startDate = date('Y-m-d', strtotime($endDate . ' - 140 days'));
             } elseif ($period == 'month') {
                 $startDate = date('Y-m-01', strtotime($endDate . ' - 365 days'));
@@ -51,16 +58,14 @@ class API extends \Piwik\Plugin\API
             $mons = array(1 => "Jan", 2 => "Feb", 3 => "Mar", 4 => "Apr", 5 => "May", 6 => "Jun", 7 => "Jul", 8 => "Aug", 9 => "Sep", 10 => "Oct", 11 => "Nov", 12 => "Dec");
 
             for ($i = $startDate; $i <= $endDate; $i = date('Y-m-d', strtotime($i . $timeIncrease))) {
-                if($period == 'day'){
+                if ($period == 'day') {
                     $dateArray[$i] = $i;
-                }
-                elseif ($period == 'week'){
+                } elseif ($period == 'week') {
                     $start = date('Y/m/d', strtotime($i));
                     $end = date('Y/m/d', strtotime($i . ' + 6 days'));
                     $label = $start . ' - ' . $end;
                     $dateArray[$i] = $label;
-                }
-                elseif ($period == 'month'){
+                } elseif ($period == 'month') {
                     $d = date_parse_from_format('Y-m-d', $i);
                     $label = $mons[$d['month']] . ' ' . $d['year'];
                     $dateArray[$i] = $label;
@@ -72,6 +77,113 @@ class API extends \Piwik\Plugin\API
         return $dateArray;
     }
 
+    private function loadLastVisitorDetailsFromDatabase($idSite, $period, $date, $segment = false, $offset = 0, $limit = 100, $minTimestamp = false, $filterSortOrder = false, $visitorId = false)
+    {
+        $model = new Model();
+        $data = $model->queryLogVisits($idSite, $period, $date, $segment, $offset, $limit, $visitorId, $minTimestamp, $filterSortOrder);
+        return $this->makeVisitorTableFromArray($data);
+    }
+
+    private function makeVisitorTableFromArray($data)
+    {
+        $dataTable = new DataTable();
+        $dataTable->addRowsFromSimpleArray($data);
+
+        if (!empty($data[0])) {
+            $columnsToNotAggregate = array_map(function () {
+                return 'skip';
+            }, $data[0]);
+
+            $dataTable->setMetadata(DataTable::COLUMN_AGGREGATION_OPS_METADATA_NAME, $columnsToNotAggregate);
+        }
+
+        return $dataTable;
+    }
+
+    private function addFilterToCleanVisitors(DataTable $dataTable, $idSite, $flat = false, $doNotFetchActions = false, $filterNow = true)
+    {
+        $filter = 'queueFilter';
+        if ($filterNow) {
+            $filter = 'filter';
+        }
+
+        $dataTable->$filter(function ($table) use ($idSite, $flat, $doNotFetchActions) {
+
+            /** @var DataTable $table */
+            $actionsLimit = (int)Config::getInstance()->General['visitor_log_maximum_actions_per_visit'];
+
+            $visitorFactory = new VisitorFactory();
+            $website = new Site($idSite);
+            $timezone = $website->getTimezone();
+            $currency = $website->getCurrency();
+            $currencies = APISitesManager::getInstance()->getCurrencySymbols();
+
+            // live api is not summable, prevents errors like "Unexpected ECommerce status value"
+            $table->deleteRow(DataTable::ID_SUMMARY_ROW);
+
+            foreach ($table->getRows() as $visitorDetailRow) {
+                $visitorDetailsArray = Visitor::cleanVisitorDetails($visitorDetailRow->getColumns());
+
+                $visitor = $visitorFactory->create($visitorDetailsArray);
+                $visitorDetailsArray = $visitor->getAllVisitorDetails();
+
+                $visitorDetailsArray['siteCurrency'] = $currency;
+                $visitorDetailsArray['siteCurrencySymbol'] = @$currencies[$visitorDetailsArray['siteCurrency']];
+                $visitorDetailsArray['serverTimestamp'] = $visitorDetailsArray['lastActionTimestamp'];
+
+                $dateTimeVisit = Date::factory($visitorDetailsArray['lastActionTimestamp'], $timezone);
+                if ($dateTimeVisit) {
+                    $visitorDetailsArray['serverTimePretty'] = $dateTimeVisit->getLocalized(Date::TIME_FORMAT);
+                    $visitorDetailsArray['serverDatePretty'] = $dateTimeVisit->getLocalized(Date::DATE_FORMAT_LONG);
+                }
+
+                $dateTimeVisitFirstAction = Date::factory($visitorDetailsArray['firstActionTimestamp'], $timezone);
+                $visitorDetailsArray['serverDatePrettyFirstAction'] = $dateTimeVisitFirstAction->getLocalized(Date::DATE_FORMAT_LONG);
+                $visitorDetailsArray['serverTimePrettyFirstAction'] = $dateTimeVisitFirstAction->getLocalized(Date::TIME_FORMAT);
+
+                $visitorDetailsArray['actionDetails'] = array();
+                if (!$doNotFetchActions) {
+                    $visitorDetailsArray = Visitor::enrichVisitorArrayWithActions($visitorDetailsArray, $actionsLimit, $timezone);
+                }
+
+                if ($flat) {
+                    $visitorDetailsArray = Visitor::flattenVisitorDetailsArray($visitorDetailsArray);
+                }
+
+                $visitorDetailRow->setColumns($visitorDetailsArray);
+            }
+
+        });
+    }
+
+    public function getLastVisitsDetails($idSite, $period = false, $date = false, $segment = false, $filterLimit = 100, $filterOffset = 0, $countVisitorsToFetch = false, $minTimestamp = false, $flat = false, $doNotFetchActions = false)
+    {
+        Piwik::checkUserHasViewAccess($idSite);
+
+        $filterSortOrder = Common::getRequestVar('filter_sort_order', false, 'string');
+
+        $dataTable = $this->loadLastVisitorDetailsFromDatabase($idSite, $period, $date, $segment, $filterOffset, $filterLimit, $minTimestamp, $filterSortOrder, $visitorId = false);
+
+        $this->addFilterToCleanVisitors($dataTable, $idSite, $flat, false);
+
+        $filterSortColumn = Common::getRequestVar('filter_sort_column', false, 'string');
+
+        if ($filterSortColumn) {
+            $this->logger->warning('Sorting the API method "Live.getLastVisitDetails" by column is currently not supported. To avoid this warning remove the URL parameter "filter_sort_column" from your API request.');
+        }
+
+        // Usually one would Sort a DataTable and then apply a Limit. In this case we apply a Limit first in SQL
+        // for fast offset usage see https://github.com/piwik/piwik/issues/7458. Sorting afterwards would lead to a
+        // wrong sorting result as it would only sort the limited results. Therefore we do not support a Sort for this
+        // API
+
+        $dataTable->disableFilter('Sort');
+
+        $dataTable->disableFilter('Limit'); // limit is already applied here
+
+        return $dataTable;
+    }
+
     /**
      * @param $idSite
      * @param $day
@@ -79,15 +191,8 @@ class API extends \Piwik\Plugin\API
      */
     public function getVisitDetailsFromApiByPage($idSite, $period, $date, $segment = false, $filter_offset = 0)
     {
-        return \Piwik\API\Request::processRequest('Live.getLastVisitsDetails', array(
-            'idSite' => $idSite,
-            'period' => $period,
-            'date' => $date,
-            'segment' => $segment,
-            'filter_offset' => $filter_offset,
-            'filter_limit' => 100,
-            'filter_column' => 'actionDetails'
-        ));
+        $filter_limit = 100;
+        return $this->getLastVisitsDetails($idSite, $period, $date, $segment, $filter_limit, $filter_offset, false);
     }
 
     public function getVisitDetailsFromApi($idSite, $period, $date, $segment = false)
@@ -273,7 +378,7 @@ class API extends \Piwik\Plugin\API
             if ($totalSearchCount == 0) {
                 $repeatingRate = 0;
             } else {
-                $repeatingRate = ($repeatingSearchCount * 100)  / ($totalSearchCount * 1.0);
+                $repeatingRate = ($repeatingSearchCount * 100) / ($totalSearchCount * 1.0);
             }
 
             $metatable->addRowFromArray(array(Row::COLUMNS => array(
@@ -337,7 +442,7 @@ class API extends \Piwik\Plugin\API
 
         return array($totalSearchCount, $bouncedSearchCount);
     }
-    
+
     /**
      * @param $idSite
      * @param $period
@@ -348,24 +453,14 @@ class API extends \Piwik\Plugin\API
      */
     public function getBounceSearchInfo($idSite, $period, $date, $segment = false, $day)
     {
-//        $bouncedSearchCount = 0;
-//        $totalSearchCount = 0;
-//        if (strpos($date, ',') !== false) {
-//            $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
-//            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-//
-//        }
-//
-//        return array($bouncedSearchCount, $totalSearchCount);
-
         $bouncedSearchCount = 0;
         $totalSearchCount = 0;
         if (strpos($date, ',') !== false) {
             $filter_offset = 0;
             $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
             list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-            while($data->getRowsCount() >= 100){
-                echo 'filter_offset = ' . $filter_offset . ' & data row count = ' . $data->getRowsCount() . '<br />';
+
+            while ($data->getRowsCount() >= 100) {
                 $filter_offset = $filter_offset + 100;
                 $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
                 list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
@@ -373,35 +468,6 @@ class API extends \Piwik\Plugin\API
         }
 
         return array($bouncedSearchCount, $totalSearchCount);
-
-
-//        $bouncedSearchCount = 0;
-//        $totalSearchCount = 0;
-//        if (strpos($date, ',') !== false && $period == 'day') {
-//            $data = $this->getVisitDetailsFromApi($idSite, 'day', $day, $segment);
-//            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-//        }
-//        elseif ($period == 'month') {
-//            $startDate = date('Y-m-01', strtotime($day));
-//            $endDate = date('Y-m-t', strtotime($day));
-//            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
-//                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
-//                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-//            }
-//        } elseif ($period == 'week') {
-//            $startDate = date('Y-m-d', strtotime($day));
-//            $endDate = date('Y-m-d', strtotime($day . ' + 6 days'));
-//            for ($everyDay = $startDate; $everyDay <= $endDate; $everyDay = date('Y-m-d', strtotime($everyDay . ' + 1 days'))) {
-//                $data = $this->getVisitDetailsFromApi($idSite, 'day', $everyDay, $segment);
-//                list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-//            }
-//        }
-//        else {
-//            $data = $this->getVisitDetailsFromApi($idSite, $period, $day, $segment);
-//            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-//        }
-//
-//        return array($bouncedSearchCount, $totalSearchCount);
     }
 
     public function getBounceSearchRate($idSite, $period, $date, $segment = false)
