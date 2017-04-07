@@ -23,6 +23,13 @@ use Piwik\Site;
 
 class Model
 {
+    private static $rawPrefix = 'searchmonitor';
+    private $table;
+
+    public function __construct()
+    {
+        $this->table = Common::prefixTable(self::$rawPrefix);
+    }
 
     /**
      * @param $idVisit
@@ -310,5 +317,37 @@ class Model
             $where = false;
         }
         return array($whereBind, $where);
+    }
+
+    public function addDayDataInSearchMonitor($perday, $bounceCount, $bounceTotal, $repeatCount, $repeatTotal,
+                                              $sumPaceTime, $sumVisits, $timeLessFive, $timeBetFiveAndTen,
+                                              $timeBetTenAndThirty, $timeBetThirtyAndSixty, $timeMoreSixty)
+    {
+        $query = "INSERT INTO " . $this->table .
+            " (perday,bounceCount,bounceTotal,repeatCount,repeatTotal,sumPaceTime,sumVisits,timeLessFive,timeBetFiveAndTen,timeBetTenAndThirty,timeBetThirtyAndSixty,timeMoreSixty)" .
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+        $bind = array($perday, $bounceCount, $bounceTotal, $repeatCount, $repeatTotal,
+            $sumPaceTime, $sumVisits, $timeLessFive, $timeBetFiveAndTen,
+            $timeBetTenAndThirty, $timeBetThirtyAndSixty, $timeMoreSixty);
+        Db::query($query, $bind);
+
+        return true;
+    }
+
+    public function addBounceDataToDB($perDay, $bounceCount, $bounceTotal)
+    {
+        $perDay = $perDay . '';
+        $data = Db::fetchAll("SELECT * FROM " . $this->table . " WHERE perday = " . $perDay);
+//        echo "data has ".$data->getRowsCount()."<br>";
+        if ($data != null) {
+            $query = "UPDATE " . $this->table . " SET bounceCount = ? , bounceTotal = ? WHERE perday = ? ";
+            $bind = array($bounceCount, $bounceTotal, $perDay);
+            Db::query($query, $bind);
+        } else {
+            $query = "INSERT INTO " . $this->table . " (perday,bounceCount,bounceTotal) VALUES (?,?,?) ";
+            $bind = array($perDay, $bounceCount, $bounceTotal);
+            Db::query($query, $bind);
+        }
+
     }
 }

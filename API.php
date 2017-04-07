@@ -23,6 +23,11 @@ use Piwik\Site;
  */
 class API extends \Piwik\Plugin\API
 {
+    private function getModel()
+    {
+        return new Model();
+    }
+
     public function getDateArrayForEvolution($period, $date)
     {
         if ($date == 'yesterday') {
@@ -478,6 +483,8 @@ class API extends \Piwik\Plugin\API
                 list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
             }
         }
+
+        $this->getModel()->addBounceDataToDB($day, $bouncedSearchCount, $totalSearchCount);
 
         return array($bouncedSearchCount, $totalSearchCount);
     }
