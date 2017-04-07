@@ -38,18 +38,12 @@ class Visitor implements VisitorInterface
         $visitor = array(
             'idSite'                      => $this->getIdSite(),
             'idVisit'                     => $this->getIdVisit(),
-            'visitIp'                     => $this->getIp(),
             'visitorId'                   => $this->getVisitorId(),
-
             // => false are placeholders to be filled in API later
             'actionDetails'               => false,
-            'goalConversions'             => false,
-            'siteCurrency'                => false,
-            'siteCurrencySymbol'          => false,
 
             // all time entries
             'serverDate'                  => $this->getServerDate(),
-            'visitServerHour'             => $this->getVisitServerHour(),
             'lastActionTimestamp'         => $this->getTimestampLastAction(),
             'lastActionDateTime'          => $this->getDateTimeLastAction(),
         );
@@ -84,22 +78,9 @@ class Visitor implements VisitorInterface
         return false;
     }
 
-    function getVisitServerHour()
-    {
-        return date('G', strtotime($this->details['visit_last_action_time']));
-    }
-
     function getServerDate()
     {
         return date('Y-m-d', strtotime($this->details['visit_last_action_time']));
-    }
-
-    function getIp()
-    {
-        if (isset($this->details['location_ip'])) {
-            return IPUtils::binaryToStringIP($this->details['location_ip']);
-        }
-        return null;
     }
 
     function getIdVisit()
