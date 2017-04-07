@@ -12,9 +12,7 @@ use Piwik\Common;
 use Piwik\Config;
 use Piwik\DataTable;
 use Piwik\DataTable\Row;
-use Piwik\Date;
 use Piwik\Piwik;
-use Piwik\Plugins\SitesManager\API as APISitesManager;
 use Piwik\Site;
 
 
@@ -42,9 +40,9 @@ class API extends \Piwik\Plugin\API
             $endDate = date('Y-m-d', strtotime($spiltDate[1]));
 
             if ($period == 'week') {
-                $startDate = date('Y-m-d', strtotime($endDate . ' - 140 days'));
+                $startDate = date('Y-m-d', strtotime($endDate . ' - 70 days'));
             } elseif ($period == 'month') {
-                $startDate = date('Y-m-01', strtotime($endDate . ' - 365 days'));
+                $startDate = date('Y-m-01', strtotime($endDate . ' - 180 days'));
             }
 
             if ($period == 'day' || $period == 'range') {
@@ -177,6 +175,29 @@ class API extends \Piwik\Plugin\API
     {
         $filter_limit = 100;
         return $this->getLastVisitsDetails($idSite, $period, $date, $segment, $filter_limit, $filter_offset, false);
+    }
+
+    public function getVisitDetailsFromApiByPageCount($idSite, $period, $date, $segment = false, $filter_offset = 0, $filter_limit = 100)
+    {
+        $metatable = new DataTable();
+        $dateArray = $this->getDateArrayForEvolution($period, $date);
+        foreach ($dateArray as $day => $label) {
+            $data = $this->getLastVisitsDetails($idSite, $period, $day, $segment, $filter_limit, $filter_offset, false);
+            $metatable->addRowFromArray(array(Row::COLUMNS => array(
+                'label' => $label,
+                'count' => $data->getRowsCount()
+            )));
+
+            while ($data->getRowsCount() >= $filter_limit) {
+                $filter_offset = $filter_offset + $filter_limit;
+                $data = $this->getLastVisitsDetails($idSite, $period, $day, $segment, $filter_limit, $filter_offset, false);
+                $metatable->addRowFromArray(array(Row::COLUMNS => array(
+                    'label' => $label,
+                    'count' => $data->getRowsCount()
+                )));
+            }
+        }
+        return $metatable;
     }
 
     /**
