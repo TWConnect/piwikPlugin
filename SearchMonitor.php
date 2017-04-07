@@ -8,6 +8,10 @@
 
 namespace Piwik\Plugins\SearchMonitor;
 
+use Exception;
+use Piwik\Common;
+use Piwik\Db;
+
 class SearchMonitor extends \Piwik\Plugin
 {
     /**
@@ -26,5 +30,32 @@ class SearchMonitor extends \Piwik\Plugin
     public function getStylesheetFiles(&$stylesheets)
     {
         $stylesheets[] = "plugins/SearchMonitor/stylesheets/GetKeywordRelatedInfo.less";
+    }
+
+    public function install()
+    {
+        try {
+            $sql = "CREATE TABLE " . Common::prefixTable('searchmonitor') . " (
+                        perday VARCHAR( 50 ) NOT NULL ,
+                        bounceCount INT ,
+                        bounceTotal INT ,
+                        repeatCount INT ,
+                        repeatTotal INT ,
+                        sumPaceTime INT ,
+                        sumVisits INT ,
+                        timeLessFive INT ,
+                        timeBetFiveAndTen INT ,
+                        timeBetTenAndThirty INT ,
+                        timeBetThirtyAndSixty INT ,
+                        timeMoreSixty INT ,
+                        PRIMARY KEY ( perday )
+                    )  DEFAULT CHARSET=utf8 ";
+            Db::exec($sql);
+        } catch (Exception $e) {
+            // ignore error if table already exists (1050 code is for 'table already exists')
+            if (!Db::get()->isErrNo($e, '1050')) {
+                throw $e;
+            }
+        }
     }
 }
