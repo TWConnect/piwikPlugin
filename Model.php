@@ -11,7 +11,6 @@ namespace Piwik\Plugins\SearchMonitor;
 
 use Exception;
 use Piwik\Common;
-use Piwik\DataAccess\LogAggregator;
 use Piwik\Date;
 use Piwik\Db;
 use Piwik\Period;
@@ -20,7 +19,6 @@ use Piwik\Piwik;
 use Piwik\Plugins\CustomVariables\CustomVariables;
 use Piwik\Segment;
 use Piwik\Site;
-use Piwik\Tracker\GoalManager;
 
 
 class Model
@@ -76,104 +74,6 @@ class Model
     }
 
     /**
-     * @param $idVisit
-     * @param $limit
-     * @return array
-     * @throws \Exception
-     */
-    public function queryGoalConversionsForVisit($idVisit, $limit)
-    {
-        $sql = "
-				SELECT
-						'goal' as type,
-						goal.name as goalName,
-						goal.idgoal as goalId,
-						log_conversion.revenue as revenue,
-						log_conversion.idlink_va,
-						log_conversion.idlink_va as goalPageId,
-						log_conversion.server_time as serverTimePretty,
-						log_conversion.url as url
-				FROM " . Common::prefixTable('log_conversion') . " AS log_conversion
-				LEFT JOIN " . Common::prefixTable('goal') . " AS goal
-					ON (goal.idsite = log_conversion.idsite
-						AND
-						goal.idgoal = log_conversion.idgoal)
-					AND goal.deleted = 0
-				WHERE log_conversion.idvisit = ?
-					AND log_conversion.idgoal > 0
-                ORDER BY server_time ASC
-				LIMIT 0, $limit
-			";
-        $goalDetails = Db::fetchAll($sql, array($idVisit));
-        return $goalDetails;
-    }
-
-    /**
-     * @param $idVisit
-     * @param $limit
-     * @return array
-     * @throws \Exception
-     */
-    public function queryEcommerceConversionsForVisit($idVisit, $limit)
-    {
-        $sql = "SELECT
-						case idgoal when " . GoalManager::IDGOAL_CART
-            . " then '" . Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_CART
-            . "' else '" . Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER . "' end as type,
-						idorder as orderId,
-						" . LogAggregator::getSqlRevenue('revenue') . " as revenue,
-						" . LogAggregator::getSqlRevenue('revenue_subtotal') . " as revenueSubTotal,
-						" . LogAggregator::getSqlRevenue('revenue_tax') . " as revenueTax,
-						" . LogAggregator::getSqlRevenue('revenue_shipping') . " as revenueShipping,
-						" . LogAggregator::getSqlRevenue('revenue_discount') . " as revenueDiscount,
-						items as items,
-						log_conversion.server_time as serverTimePretty,
-						log_conversion.idlink_va
-					FROM " . Common::prefixTable('log_conversion') . " AS log_conversion
-					WHERE idvisit = ?
-						AND idgoal <= " . GoalManager::IDGOAL_ORDER . "
-					ORDER BY server_time ASC
-					LIMIT 0, $limit";
-        $ecommerceDetails = Db::fetchAll($sql, array($idVisit));
-        return $ecommerceDetails;
-    }
-
-
-    /**
-     * @param $idVisit
-     * @param $idOrder
-     * @param $actionsLimit
-     * @return array
-     * @throws \Exception
-     */
-    public function queryEcommerceItemsForOrder($idVisit, $idOrder, $actionsLimit)
-    {
-        $sql = "SELECT
-							log_action_sku.name as itemSKU,
-							log_action_name.name as itemName,
-							log_action_category.name as itemCategory,
-							" . LogAggregator::getSqlRevenue('price') . " as price,
-							quantity as quantity
-						FROM " . Common::prefixTable('log_conversion_item') . "
-							INNER JOIN " . Common::prefixTable('log_action') . " AS log_action_sku
-							ON  idaction_sku = log_action_sku.idaction
-							LEFT JOIN " . Common::prefixTable('log_action') . " AS log_action_name
-							ON  idaction_name = log_action_name.idaction
-							LEFT JOIN " . Common::prefixTable('log_action') . " AS log_action_category
-							ON idaction_category = log_action_category.idaction
-						WHERE idvisit = ?
-							AND idorder = ?
-							AND deleted = 0
-						LIMIT 0, $actionsLimit
-				";
-
-        $bind = array($idVisit, $idOrder);
-
-        $itemsDetails = Db::fetchAll($sql, $bind);
-        return $itemsDetails;
-    }
-
-    /**
      * @param $idSite
      * @param $period
      * @param $date
@@ -190,105 +90,6 @@ class Model
         list($sql, $bind) = $this->makeLogVisitsQueryString($idSite, $period, $date, $segment, $offset, $limit, $visitorId, $minTimestamp, $filterSortOrder);
 
         return Db::fetchAll($sql, $bind);
-    }
-
-    /**
-     * @param $idSite
-     * @param $lastMinutes
-     * @param $segment
-     * @return int
-     * @throws Exception
-     */
-    public function getNumActions($idSite, $lastMinutes, $segment)
-    {
-        return $this->getLastMinutesCounterForQuery(
-            $idSite,
-            $lastMinutes,
-            $segment,
-            'COUNT(*)',
-            'log_link_visit_action',
-            'log_link_visit_action.server_time >= ?'
-        );
-    }
-
-    /**
-     * @param $idSite
-     * @param $lastMinutes
-     * @param $segment
-     * @return int
-     * @throws Exception
-     */
-    public function getNumVisitsConverted($idSite, $lastMinutes, $segment)
-    {
-        return $this->getLastMinutesCounterForQuery(
-            $idSite,
-            $lastMinutes,
-            $segment,
-            'COUNT(*)',
-            'log_conversion',
-            'log_conversion.server_time >= ?'
-        );
-    }
-
-    /**
-     * @param $idSite
-     * @param $lastMinutes
-     * @param $segment
-     * @return int
-     * @throws Exception
-     */
-    public function getNumVisits($idSite, $lastMinutes, $segment)
-    {
-        return $this->getLastMinutesCounterForQuery(
-            $idSite,
-            $lastMinutes,
-            $segment,
-            'COUNT(log_visit.visit_last_action_time)',
-            'log_visit',
-            'log_visit.visit_last_action_time >= ?'
-        );
-    }
-
-    /**
-     * @param $idSite
-     * @param $lastMinutes
-     * @param $segment
-     * @return int
-     * @throws Exception
-     */
-    public function getNumVisitors($idSite, $lastMinutes, $segment)
-    {
-        return $this->getLastMinutesCounterForQuery(
-            $idSite,
-            $lastMinutes,
-            $segment,
-            'COUNT(DISTINCT log_visit.idvisitor)',
-            'log_visit',
-            'log_visit.visit_last_action_time >= ?'
-        );
-    }
-
-    private function getLastMinutesCounterForQuery($idSite, $lastMinutes, $segment, $select, $from, $where)
-    {
-        $lastMinutes = (int)$lastMinutes;
-
-        if (empty($lastMinutes)) {
-            return 0;
-        }
-
-        list($whereIdSites, $idSites) = $this->getIdSitesWhereClause($idSite, $from);
-
-        $bind = $idSites;
-        $bind[] = Date::factory(time() - $lastMinutes * 60)->toString('Y-m-d H:i:s');
-
-        $where = $whereIdSites . "AND " . $where;
-
-        $segment = new Segment($segment, $idSite);
-        $query = $segment->getSelectQuery($select, $from, $where, $bind);
-
-        $numVisitors = Db::fetchOne($query['sql'], $query['bind']);
-
-        return $numVisitors;
     }
 
     /**

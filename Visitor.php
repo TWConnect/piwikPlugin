@@ -13,14 +13,12 @@ use Piwik\DataTable\Filter\ColumnDelete;
 use Piwik\Date;
 use Piwik\Db;
 use Piwik\Metrics\Formatter;
-use Piwik\Network\IPUtils;
 use Piwik\Piwik;
 use Piwik\Plugins\CustomVariables\CustomVariables;
 use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
 use Piwik\Plugins\Actions\Actions\ActionSiteSearch;
 use Piwik\Tracker;
 use Piwik\Tracker\Action;
-use Piwik\Tracker\GoalManager;
 
 class Visitor implements VisitorInterface
 {
