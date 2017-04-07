@@ -470,21 +470,26 @@ class API extends \Piwik\Plugin\API
      */
     public function getBounceSearchInfo($idSite, $period, $date, $segment = false, $day)
     {
-        $bouncedSearchCount = 0;
-        $totalSearchCount = 0;
-        if (strpos($date, ',') !== false) {
-            $filter_offset = 0;
-            $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
-            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+        list($startDate, $endDate) = $this->getStartDateAndEndDate($period, $day);
+        $periodData = $this->getModel()->getBounceDataFromDB($startDate, $endDate);
+        $bouncedSearchCount = $periodData['SUM(bounceCount)'];
+        $totalSearchCount = $periodData['SUM(bounceTotal)'];
 
-            while ($data->getRowsCount() >= 100) {
-                $filter_offset = $filter_offset + 100;
+        if ($period == 'day' && ($bouncedSearchCount == null || $totalSearchCount == null)) {
+            if (strpos($date, ',') !== false) {
+                $filter_offset = 0;
                 $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
                 list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-            }
-        }
 
-        $this->getModel()->addBounceDataToDB($day, $bouncedSearchCount, $totalSearchCount);
+                while ($data->getRowsCount() >= 100) {
+                    $filter_offset = $filter_offset + 100;
+                    $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
+                    list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+                }
+            }
+
+            $this->getModel()->addBounceDataToDB($day, $bouncedSearchCount, $totalSearchCount);
+        }
 
         return array($bouncedSearchCount, $totalSearchCount);
     }
@@ -679,6 +684,27 @@ class API extends \Piwik\Plugin\API
                 }
             }
         }
+    }
+
+    /**
+     * @param $period
+     * @param $day
+     * @return array
+     */
+    private function getStartDateAndEndDate($period, $day)
+    {
+        $startDate = $day;
+        $endDate = $day;
+        if ($period == 'week') {
+            $startDate = date('Y-m-d', strtotime($day . ' - 6 days'));
+            $endDate = date('Y-m-d', strtotime($day));
+            return array($startDate, $endDate);
+        } elseif ($period == 'month') {
+            $startDate = date('Y-m-d', strtotime($day));
+            $endDate = date('Y-m-d', strtotime($day . ' + 1 month' . '-1 days'));
+            return array($startDate, $endDate);
+        }
+        return array($startDate, $endDate);
     }
 
 }
