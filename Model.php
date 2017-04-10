@@ -354,6 +354,11 @@ class Model
         return Db::fetchRow("SELECT SUM(sumPaceTime),SUM(sumVisits) FROM piwik_searchmonitor WHERE perday >= '$startDate' AND perday <= '$endDate'");
     }
 
+    public function getPaceTimeDistributionDataFromDB($startDate, $endDate)
+    {
+        return Db::fetchRow("SELECT SUM(timeLessFive),SUM(timeBetFiveAndTen),SUM(timeBetTenAndThirty),SUM(timeBetThirtyAndSixty),SUM(timeMoreSixty) FROM piwik_searchmonitor WHERE perday >= '$startDate' AND perday <= '$endDate'");
+    }
+
     public function addBounceDataToDB($perDay, $bounceCount, $bounceTotal)
     {
         $perDayData = $this->getOneDayBounceDataFromDB($perDay);
@@ -385,7 +390,7 @@ class Model
         }
 
     }
-    
+
     public function addPaceTimeDataToDB($perDay, $sumPaceTime, $sumVisits)
     {
         $perDayData = $this->getOneDayBounceDataFromDB($perDay);
@@ -397,6 +402,22 @@ class Model
         } else {
             $query = "UPDATE " . $this->table . " SET sumPaceTime = ? , sumVisits = ? WHERE perday = ? ";
             $bind = array($sumPaceTime, $sumVisits, $perDay);
+            Db::query($query, $bind);
+        }
+
+    }
+
+    public function addPaceTimeDistributionDataToDB($perDay, $timeLessFive, $timeBetFiveAndTen, $timeBetTenAndThirty, $timeBetThirtyAndSixty, $timeMoreSixty)
+    {
+        $perDayData = $this->getOneDayBounceDataFromDB($perDay);
+
+        if (empty($perDayData)) {
+            $query = "INSERT INTO " . $this->table . " (perday,timeLessFive,timeBetFiveAndTen,timeBetTenAndThirty,timeBetThirtyAndSixty,timeMoreSixty) VALUES (?,?,?,?,?,?) ";
+            $bind = array($perDay, $timeLessFive, $timeBetFiveAndTen, $timeBetTenAndThirty, $timeBetThirtyAndSixty, $timeMoreSixty);
+            Db::query($query, $bind);
+        } else {
+            $query = "UPDATE " . $this->table . " SET timeLessFive = ? , timeBetFiveAndTen = ? , timeBetTenAndThirty = ? , timeBetThirtyAndSixty = ? , timeMoreSixty = ? WHERE perday = ? ";
+            $bind = array($timeLessFive, $timeBetFiveAndTen, $timeBetTenAndThirty, $timeBetThirtyAndSixty, $timeMoreSixty, $perDay);
             Db::query($query, $bind);
         }
 

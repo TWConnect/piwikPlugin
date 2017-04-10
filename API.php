@@ -254,16 +254,19 @@ class API extends \Piwik\Plugin\API
 
     public function getDataOfPaceTimeOnSearchResultDistribution($idSite, $period, $date, $segment = false)
     {
-        $distributionData = array();
+        list($startDate, $endDate) = $this->getStartDateAndEndDate($period, $date);
 
-        $filter_offset = 0;
-        $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset);
-        $distributionData = $this->getAvgTimeOnPageDistribution($data, $distributionData);
-        while ($data->getRowsCount() >= 100) {
-            $filter_offset = $filter_offset + 100;
-            $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset);
-            $distributionData = $this->getAvgTimeOnPageDistribution($data, $distributionData);
+        $distributionData = $this->getPaceTimeDistributionFromDB($startDate, $endDate);
+        if ($period == 'range') {
+            for ($day = $startDate; $day <= $endDate; $day = date('Y-m-d', strtotime($day . "+1 days"))) {
+                $this->calculateDailyDistributionData($idSite, 'day', $day, $segment);
+            }
+            $distributionData = $this->getPaceTimeDistributionFromDB($startDate, $endDate);
         }
+        if ($period == 'day') {
+            $distributionData = $this->calculateDailyDistributionData($idSite, $period, $date, $segment);
+        }
+
         return $distributionData;
     }
 
@@ -720,11 +723,73 @@ class API extends \Piwik\Plugin\API
             $endDate = date('Y-m-d', strtotime($day));
             return array($startDate, $endDate);
         } elseif ($period == 'month') {
-            $startDate = date('Y-m-d', strtotime($day));
-            $endDate = date('Y-m-d', strtotime($day . ' + 1 month' . '-1 days'));
+            $startDate = date('Y-m-01', strtotime($day));
+            $endDate = date('Y-m-t', strtotime($day));
             return array($startDate, $endDate);
+        } elseif ($period == 'range') {
+            $spiltDate = explode(',', $day);
+            $startDate = date('Y-m-d', strtotime($spiltDate[0]));
+            $endDate = date('Y-m-d', strtotime($spiltDate[1]));
         }
         return array($startDate, $endDate);
+    }
+
+    /**
+     * @param $startDate
+     * @param $endDate
+     * @param $distributionData
+     * @return mixed
+     */
+    private function getPaceTimeDistributionFromDB($startDate, $endDate)
+    {
+        $distributionData = array();
+        $periodData = $this->getModel()->getPaceTimeDistributionDataFromDB($startDate, $endDate);
+
+        $distributionData[0] = $periodData['SUM(timeLessFive)'];
+        $distributionData[1] = $periodData['SUM(timeBetFiveAndTen)'];
+        $distributionData[2] = $periodData['SUM(timeBetTenAndThirty)'];
+        $distributionData[3] = $periodData['SUM(timeBetThirtyAndSixty)'];
+        $distributionData[4] = $periodData['SUM(timeMoreSixty)'];
+        return $distributionData;
+    }
+
+    /**
+     * @param $idSite
+     * @param $period
+     * @param $date
+     * @param $segment
+     * @param $distributionData
+     * @return mixed
+     */
+    private function calculateDailyDistributionData($idSite, $period, $date, $segment)
+    {
+        $distributionData = $this->getPaceTimeDistributionFromDB($date, $date);
+        if ($distributionData[0] == null || $distributionData[1] == null ||
+            $distributionData[2] == null || $distributionData[3] == null ||
+            $distributionData[4] == null
+        ) {
+            $distributionData [0] = 0;
+            $distributionData [1] = 0;
+            $distributionData [2] = 0;
+            $distributionData [3] = 0;
+            $distributionData [4] = 0;
+
+            $filter_offset = 0;
+
+            $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset);
+            $distributionData = $this->getAvgTimeOnPageDistribution($data, $distributionData);
+            while ($data->getRowsCount() >= 100) {
+                $filter_offset = $filter_offset + 100;
+                $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset);
+                $distributionData = $this->getAvgTimeOnPageDistribution($data, $distributionData);
+            }
+
+            $this->getModel()->addPaceTimeDistributionDataToDB($date, $distributionData[0], $distributionData[1],
+                $distributionData[2], $distributionData[3], $distributionData[4]);
+
+        }
+
+        return $distributionData;
     }
 
 }
