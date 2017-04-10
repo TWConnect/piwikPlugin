@@ -344,6 +344,11 @@ class Model
         return Db::fetchRow("SELECT SUM(bounceCount),SUM(bounceTotal) FROM piwik_searchmonitor WHERE perday >= '$startDate' AND perday <= '$endDate'");
     }
 
+    public function getRepeatDataFromDB($startDate, $endDate)
+    {
+        return Db::fetchRow("SELECT SUM(repeatCount),SUM(repeatTotal) FROM piwik_searchmonitor WHERE perday >= '$startDate' AND perday <= '$endDate'");
+    }
+
     public function addBounceDataToDB($perDay, $bounceCount, $bounceTotal)
     {
         $perDayData = $this->getOneDayBounceDataFromDB($perDay);
@@ -355,6 +360,22 @@ class Model
         } else {
             $query = "UPDATE " . $this->table . " SET bounceCount = ? , bounceTotal = ? WHERE perday = ? ";
             $bind = array($bounceCount, $bounceTotal, $perDay);
+            Db::query($query, $bind);
+        }
+
+    }
+    
+    public function addRepeatDataToDB($perDay, $repeatCount, $repeatTotal)
+    {
+        $perDayData = Db::fetchRow("SELECT * FROM " . $this->table . " WHERE perDay = '$perDay'");
+
+        if (empty($perDayData)) {
+            $query = "INSERT INTO " . $this->table . " (perday,repeatCount,repeatTotal) VALUES (?,?,?) ";
+            $bind = array($perDay, $repeatCount, $repeatTotal);
+            Db::query($query, $bind);
+        } else {
+            $query = "UPDATE " . $this->table . " SET repeatCount = ? , repeatTotal = ? WHERE perday = ? ";
+            $bind = array($repeatCount, $repeatTotal, $perDay);
             Db::query($query, $bind);
         }
 

@@ -341,32 +341,40 @@ class API extends \Piwik\Plugin\API
      */
     public function getRepeatingSearchInfo($idSite, $period, $date, $segment = false, $day)
     {
-        $repeatSearchRecords = array();
-        if (strpos($date, ',') !== false) {
-            $filter_offset = 0;
-            $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
-            $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
-            while ($data->getRowsCount() >= 100) {
-                $filter_offset = $filter_offset + 100;
+        list($startDate, $endDate) = $this->getStartDateAndEndDate($period, $day);
+        $periodData = $this->getModel()->getRepeatDataFromDB($startDate, $endDate);
+        $repeatingSearchCount = $periodData['SUM(repeatCount)'];
+        $totalSearchCount = $periodData['SUM(repeatTotal)'];
+
+        if ($period == 'day' && ($repeatingSearchCount == null || $totalSearchCount == null)) {
+            $repeatSearchRecords = array();
+            if (strpos($date, ',') !== false) {
+                $filter_offset = 0;
                 $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
                 $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
+                while ($data->getRowsCount() >= 100) {
+                    $filter_offset = $filter_offset + 100;
+                    $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
+                    $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
+                }
             }
-        }
 
-        if (array_key_exists(1, $repeatSearchRecords)) {
-            $successSearchCount = $repeatSearchRecords[1];
-        } else {
-            $successSearchCount = 0;
-        }
-        $repeatingSearchCount = 0;
-
-        foreach ($repeatSearchRecords as $key => $value) {
-            if ($key > 1) { //only if repeat search larger than 1, see it as a repeating search
-                $repeatingSearchCount += $repeatSearchRecords[$key];
+            if (array_key_exists(1, $repeatSearchRecords)) {
+                $successSearchCount = $repeatSearchRecords[1];
+            } else {
+                $successSearchCount = 0;
             }
+            $repeatingSearchCount = 0;
+
+            foreach ($repeatSearchRecords as $key => $value) {
+                if ($key > 1) { //only if repeat search larger than 1, see it as a repeating search
+                    $repeatingSearchCount += $repeatSearchRecords[$key];
+                }
+            }
+            $totalSearchCount = $successSearchCount + $repeatingSearchCount;
+            $this->getModel()->addRepeatDataToDB($day, $repeatingSearchCount, $totalSearchCount);
         }
 
-        $totalSearchCount = $successSearchCount + $repeatingSearchCount;
         return array($repeatingSearchCount, $totalSearchCount);
     }
 
@@ -476,6 +484,8 @@ class API extends \Piwik\Plugin\API
         $totalSearchCount = $periodData['SUM(bounceTotal)'];
 
         if ($period == 'day' && ($bouncedSearchCount == null || $totalSearchCount == null)) {
+            $bouncedSearchCount = 0;
+            $totalSearchCount = 0;
             if (strpos($date, ',') !== false) {
                 $filter_offset = 0;
                 $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
