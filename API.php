@@ -219,18 +219,27 @@ class API extends \Piwik\Plugin\API
         $metatable = new DataTable();
 
         foreach ($dateArray as $day => $label) {
-            $sumPaceTime = 0;
-            $sumVisits = 0;
-            if (strpos($date, ',') !== false) {
-                $filter_offset = 0;
-                $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
-                list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
-                while ($data->getRowsCount() >= 100) {
-                    $filter_offset = $filter_offset + 100;
+            list($startDate, $endDate) = $this->getStartDateAndEndDate($period, $day);
+            $periodData = $this->getModel()->getPaceTimeDataFromDB($startDate, $endDate);
+            $sumPaceTime = $periodData['SUM(sumPaceTime)'];
+            $sumVisits = $periodData['SUM(sumVisits)'];
+
+            if ($period == 'day' && ($sumPaceTime == null || $sumVisits == null)) {
+                $sumPaceTime = 0;
+                $sumVisits = 0;
+                if (strpos($date, ',') !== false) {
+                    $filter_offset = 0;
                     $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
                     list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
+                    while ($data->getRowsCount() >= 100) {
+                        $filter_offset = $filter_offset + 100;
+                        $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
+                        list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
+                    }
                 }
+                $this->getModel()->addPaceTimeDataToDB($day, $sumPaceTime, $sumVisits);
             }
+
             $avgTimeOnPage = 0;
             if ($sumVisits > 0) {
                 $avgTimeOnPage = $sumPaceTime / $sumVisits;
