@@ -254,16 +254,17 @@ class API extends \Piwik\Plugin\API
 
     public function getDataOfPaceTimeOnSearchResultDistribution($idSite, $period, $date, $segment = false)
     {
-        $metatable = new DataTable();
+        $distributionData = array();
+
         $filter_offset = 0;
         $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset);
-        $this->getAvgTimeOnPageDistribution($data, $metatable);
+        $distributionData = $this->getAvgTimeOnPageDistribution($data, $distributionData);
         while ($data->getRowsCount() >= 100) {
             $filter_offset = $filter_offset + 100;
             $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset);
-            $this->getAvgTimeOnPageDistribution($data, $metatable);
+            $distributionData = $this->getAvgTimeOnPageDistribution($data, $distributionData);
         }
-        return $metatable;
+        return $distributionData;
     }
 
     /**
@@ -286,30 +287,18 @@ class API extends \Piwik\Plugin\API
             array('label' => '60s above', 'Count' => 0)
         ));
 
-        $metatable = $this->getDataOfPaceTimeOnSearchResultDistribution($idSite, $period, $date, $segment);
+        $distributionData = $this->getDataOfPaceTimeOnSearchResultDistribution($idSite, $period, $date, $segment);
 
-        foreach ($metatable->getRows() as $row) {
-            $value = $row->getColumn('avg_time_on_page');
-            $resultRow = null;
-
-            if (0 <= $value && $value < 5) {
-                $resultRow = $table->getRowFromLabel('0-5s');
-            } elseif (5 <= $value && $value < 10) {
-                $resultRow = $table->getRowFromLabel('5-10s');
-            } elseif (10 <= $value && $value < 30) {
-                $resultRow = $table->getRowFromLabel('10-30s');
-            } elseif (30 <= $value && $value < 60) {
-                $resultRow = $table->getRowFromLabel('30-60s');
-            } elseif (60 <= $value) {
-                $resultRow = $table->getRowFromLabel('60s above');
-            }
-
-            if ($resultRow != null) {
-                $counter = $resultRow->getColumn('Count');
-                $resultRow->setColumn('Count', $counter + 1);
-            }
-        }
-
+        $resultRow = $table->getRowFromLabel('0-5s');
+        $resultRow->setColumn('Count', $distributionData[0]);
+        $resultRow = $table->getRowFromLabel('5-10s');
+        $resultRow->setColumn('Count', $distributionData[1]);
+        $resultRow = $table->getRowFromLabel('10-30s');
+        $resultRow->setColumn('Count', $distributionData[2]);
+        $resultRow = $table->getRowFromLabel('30-60s');
+        $resultRow->setColumn('Count', $distributionData[3]);
+        $resultRow = $table->getRowFromLabel('60s above');
+        $resultRow->setColumn('Count', $distributionData[4]);
 
         return $table;
     }
@@ -588,7 +577,7 @@ class API extends \Piwik\Plugin\API
      * @param $data
      * @param $metatable
      */
-    private function getAvgTimeOnPageDistribution($data, $metatable)
+    private function getAvgTimeOnPageDistribution($data, $distributionData)
     {
         foreach ($data as $row) {
             $detail = $row->getColumn('actionDetails');
@@ -600,11 +589,23 @@ class API extends \Piwik\Plugin\API
                 $key = array_search($action['url'], $isResult);
                 if ($action['type'] == 'action' && $key !== FALSE) {
                     $visitTime = $action['timeSpent'];
-                    $metatable->addRowFromArray(array(Row::COLUMNS => array('avg_time_on_page' => $visitTime, 'serverTimePretty' => $action['serverTimePretty'])));
+
+                    if (0 <= $visitTime && $visitTime < 5) {
+                        $distributionData[0]++;
+                    } elseif (5 <= $visitTime && $visitTime < 10) {
+                        $distributionData[1]++;
+                    } elseif (10 <= $visitTime && $visitTime < 30) {
+                        $distributionData[2]++;
+                    } elseif (30 <= $visitTime && $visitTime < 60) {
+                        $distributionData[3]++;
+                    } elseif (60 <= $visitTime) {
+                        $distributionData[4]++;
+                    }
                     unset($isResult[$key]);
                 }
             }
         }
+        return $distributionData;
     }
 
     /**
