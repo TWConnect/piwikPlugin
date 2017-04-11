@@ -179,7 +179,14 @@ class API extends \Piwik\Plugin\API
     public function getVisitDetailsFromApiByPage($idSite, $period, $date, $segment = false, $filter_offset = 0)
     {
         $filter_limit = 100;
-        return $this->getLastVisitsDetails($idSite, $period, $date, $segment, $filter_limit, $filter_offset, false);
+        return \Piwik\API\Request::processRequest('Live.getLastVisitsDetails', array(
+            'idSite' => $idSite,
+            'period' => $period,
+            'date' => $date,
+            'segment' => $segment,
+            'filter_offset' => $filter_offset,
+            'filter_limit' => $filter_limit
+        ));
     }
 
     public function getVisitDetailsFromApiByPageCount($idSite, $period, $date, $segment = false, $filter_offset = 0, $filter_limit = 100)
