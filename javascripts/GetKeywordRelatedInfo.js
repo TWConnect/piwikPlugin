@@ -1,5 +1,10 @@
 $(document).ready(function () {
     function getTopSearchKeywords() {
+        var config = {attributes: true, childList: true, characterData: true};
+        var observer = new MutationObserver(function () {
+            $('#keyword-list .dataTable > div.dataTableWrapper > table > tbody > tr').unbind('click', getKeywordRelatedInfo);
+            $('#keyword-list .dataTable > div.dataTableWrapper > table > tbody > tr').bind('click', getKeywordRelatedInfo);
+        });
         var ajaxRequest = new ajaxHelper();
         ajaxRequest.setLoadingElement('#ajaxLoadingMyTWKeywords');
         ajaxRequest.addParams({
@@ -9,18 +14,16 @@ $(document).ready(function () {
         ajaxRequest.setCallback(
             function (response) {
                 $('#keyword-list').html(response);
-                $("#keyword-list .dataTable > div.dataTableWrapper > table > tbody > tr").click(function (event) {
-                    var span = jQuery(event.currentTarget.cells[0]).find('span .value');
-                    getKeywordRelatedInfo(span.text());
-                });
+                observer.observe(jQuery("#keyword-list")[0], config);
             }
         );
         ajaxRequest.setFormat('html');
         ajaxRequest.send(false);
     }
 
-    function getKeywordRelatedInfo(keyword) {
-
+    function getKeywordRelatedInfo(event) {
+        var span = jQuery(event.currentTarget.cells[0]).find('span .value');
+        keyword = span.text();
         var ajaxRequest = new ajaxHelper();
         ajaxRequest.setLoadingElement('#ajaxLoadingMyTWKeywords');
         ajaxRequest.addParams({
@@ -65,19 +68,19 @@ $(document).ready(function () {
                 case 'content':
                     contentCount++;
                     if (contentCount <= 10) {
-                        $('#content-url-list').append("<tr><td><a href='"+elem[0]+"'>" + elem[0] + "</a></td><td>" + elem[2] + "</td></tr>");
+                        $('#content-url-list').append("<tr><td><a href='" + elem[0] + "'>" + elem[0] + "</a></td><td>" + elem[2] + "</td></tr>");
                     }
                     break;
                 case 'group':
                     groupCount++;
                     if (contentCount <= 10) {
-                        $('#group-url-list').append("<tr><td><a href='"+elem[0]+"'>" + elem[0] + "</a></td><td>" + elem[2] + "</td></tr>");
+                        $('#group-url-list').append("<tr><td><a href='" + elem[0] + "'>" + elem[0] + "</a></td><td>" + elem[2] + "</td></tr>");
                     }
                     break;
                 case 'people':
                     peopleCount++;
                     if (contentCount <= 10) {
-                        $('#people-url-list').append("<tr><td><a href='"+elem[0]+"'>" + elem[0] + "</a></td><td>" + elem[2] + "</td></tr>");
+                        $('#people-url-list').append("<tr><td><a href='" + elem[0] + "'>" + elem[0] + "</a></td><td>" + elem[2] + "</td></tr>");
                     }
                     break;
                 default:
