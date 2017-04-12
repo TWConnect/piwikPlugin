@@ -529,14 +529,23 @@ class API extends \Piwik\Plugin\API
     public function getKeywordRelatedInfo($idSite, $period, $date, $segment = false, $reqKeyword = null)
     {
         $table = new DataTable();
-        $filter_offset = 0;
-        $data = $this->getSearchDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset, $reqKeyword);
-        $this->getRelatedData($reqKeyword, $data, $table);
-        while ($data->getRowsCount() >= 100) {
-            $filter_offset = $filter_offset + 100;
-            $data = $this->getSearchDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset, $reqKeyword);
-            $this->getRelatedData($reqKeyword, $data, $table);
+        list($startDate, $endDate) = $this->getStartDateAndEndDate($period, $date);
+        $peopleInfo = $this->getModel()->queryActionsByKeywordAndDate($reqKeyword, $startDate, $endDate, $segment, "people");
+        $groupInfo = $this->getModel()->queryActionsByKeywordAndDate($reqKeyword, $startDate, $endDate, $segment, "group");
+        $contentInfo = $this->getModel()->queryActionsByKeywordAndDate($reqKeyword, $startDate, $endDate, $segment, "content");
+        foreach ($peopleInfo as $item) {
+            $table->addRowFromArray(array(Row::COLUMNS => array(
+                'url' => $item['pageTitle'], 'type' => 'people', 'count' => $item['searchTimes'])));
         }
+        foreach ($groupInfo as $item) {
+            $table->addRowFromArray(array(Row::COLUMNS => array(
+                'url' => $item['pageTitle'], 'type' => 'group', 'count' => $item['searchTimes'])));
+        }
+        foreach ($contentInfo as $item) {
+            $table->addRowFromArray(array(Row::COLUMNS => array(
+                'url' => $item['pageTitle'], 'type' => 'content', 'count' => $item['searchTimes'])));
+        }
+
         return $table;
     }
 

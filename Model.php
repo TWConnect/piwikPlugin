@@ -24,14 +24,64 @@ use Piwik\Site;
 class Model
 {
     private static $searchMonitor = 'searchmonitor';
-    private static $keywordRelated = 'keywordrelatedinfo';
     private $searchMonitorTable;
-    private $keywordRelatedTable;
 
     public function __construct()
     {
         $this->searchMonitorTable = Common::prefixTable(self::$searchMonitor);
-        $this->keywordRelatedTable = Common::prefixTable(self::$keywordRelated);
+    }
+
+    public function queryActionsByKeywordAndDate($keyword, $startDate, $endDate, $segment, $type)
+    {
+        $customVariable = "";
+        if ($segment != ""){
+            $spiltSegment = explode('%3D%3D', $segment);
+            if ($spiltSegment[0] == "customVariableValue5") {
+                $customVariable = "AND log_visit.custom_var_v5 = '$spiltSegment[1]'";
+            } elseif ($spiltSegment[0] == "customVariableValue1") {
+                $customVariable = "AND log_visit.custom_var_v1 = '$spiltSegment[1]'";
+            }
+        }
+
+        $typeInfo ="";
+        if ($type == "people") {
+            $typeInfo="AND  log_action_title.name LIKE '%/people/%' AND log_action_title.name NOT LIKE '%/people/%/%'";
+        }elseif ($type == "group") {
+            $typeInfo="AND  log_action_title.name LIKE '%/group/%' AND log_action_title.name NOT LIKE '%/group/%/%'";
+        }elseif ($type == "content"){
+            $typeInfo=" AND
+            (
+                log_action_title.name NOT LIKE '%/groups/%' 
+                AND  log_action_title.name != 'null'
+                AND  log_action_title.name NOT LIKE '%/people/%'  
+                OR log_action_title.name LIKE '%/groups/%/%' 
+                OR log_action_title.name LIKE '%/people/%/%'
+            )";
+        }
+
+        $sql = "SELECT count(*) AS searchTimes,log_action_title.name AS pageTitle
+				FROM piwik_log_link_visit_action AS log_link_visit_action
+				    LEFT JOIN piwik_log_visit AS log_visit
+				    ON log_link_visit_action.idvisit = log_visit.idvisit 
+					LEFT JOIN piwik_log_action AS log_action
+					ON  log_link_visit_action.idaction_url = log_action.idaction
+					LEFT JOIN piwik_log_action AS log_action_title
+					ON  log_link_visit_action.idaction_name = log_action_title.idaction
+					LEFT JOIN piwik_log_action AS log_action_event_category
+					ON  log_link_visit_action.idaction_event_category = log_action_event_category.idaction
+					LEFT JOIN piwik_log_action AS log_action_event_action
+					ON  log_link_visit_action.idaction_event_action = log_action_event_action.idaction
+				WHERE log_action_event_category.name = 'searchResult' "
+            . $customVariable . " 
+				AND log_link_visit_action.server_time >='$startDate' 
+				AND log_link_visit_action.server_time <='$endDate'
+				AND log_action_event_action.name = '$keyword' "
+            .$typeInfo." 
+				GROUP BY log_action_title.name
+				ORDER BY count(*) DESC 
+				LIMIT 10";
+        return Db::fetchAll($sql);
+
     }
 
     /**

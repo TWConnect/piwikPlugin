@@ -34,19 +34,8 @@ $(document).ready(function () {
                 var result = [];
                 var data = JSON.parse(response);
                 data.forEach(function (item) {
-                    var isExisted = result.find(function (current) {
-                        return current[0] === item.url;
-                    });
-
-                    if (isExisted === undefined) {
-                        var count = data.filter(function (current) {
-                            return current.url === item.url;
-                        });
-                        result.push([item.url, item.type, count.length]);
-                    }
-                });
-                result.sort(function (a, b) {
-                    return b[2] - a[2];
+                    console.log(item);
+                    result.push([item.url, item.type, item.count]);
                 });
 
                 clearTable();
