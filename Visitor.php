@@ -230,12 +230,12 @@ class Visitor implements VisitorInterface
      * @param $timezone
      * @return array
      */
-    public static function enrichVisitorArrayWithActions($visitorDetailsArray, $actionsLimit, $timezone)
+    public static function enrichVisitorArrayWithActions($visitorDetailsArray, $actionsLimit, $timezone, $reqKeyword)
     {
         $idVisit = $visitorDetailsArray['idVisit'];
 
         $model = new Model();
-        $actionDetails = $model->queryActionsForVisit($idVisit, $actionsLimit);
+        $actionDetails = $model->queryActionsForVisit($idVisit, $actionsLimit,$reqKeyword);
 
         $formatter = new Formatter();
         $maxCustomVariables = CustomVariables::getNumUsableCustomVariables();

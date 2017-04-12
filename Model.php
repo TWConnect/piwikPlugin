@@ -23,12 +23,15 @@ use Piwik\Site;
 
 class Model
 {
-    private static $rawPrefix = 'searchmonitor';
-    private $table;
+    private static $searchMonitor = 'searchmonitor';
+    private static $keywordRelated = 'keywordrelatedinfo';
+    private $searchMonitorTable;
+    private $keywordRelatedTable;
 
     public function __construct()
     {
-        $this->table = Common::prefixTable(self::$rawPrefix);
+        $this->searchMonitorTable = Common::prefixTable(self::$searchMonitor);
+        $this->keywordRelatedTable = Common::prefixTable(self::$keywordRelated);
     }
 
     /**
@@ -37,7 +40,7 @@ class Model
      * @return array
      * @throws \Exception
      */
-    public function queryActionsForVisit($idVisit, $actionsLimit)
+    public function queryActionsForVisit($idVisit, $actionsLimit, $reqKeyword)
     {
         $maxCustomVariables = CustomVariables::getNumUsableCustomVariables();
 
@@ -73,9 +76,12 @@ class Model
 					LEFT JOIN " . Common::prefixTable('log_action') . " AS log_action_event_action
 					ON  log_link_visit_action.idaction_event_action = log_action_event_action.idaction
 				WHERE log_link_visit_action.idvisit = ?
-				ORDER BY server_time ASC
+				AND log_action_event_category.name = 'searchResult'  
+				AND log_action_event_action.name = '$reqKeyword'
+				ORDER BY server_time ASC 
 				LIMIT 0, $actionsLimit
 				 ";
+
         $actionDetails = Db::fetchAll($sql, array($idVisit));
         return $actionDetails;
     }
@@ -323,7 +329,7 @@ class Model
                                               $sumPaceTime, $sumVisits, $timeLessFive, $timeBetFiveAndTen,
                                               $timeBetTenAndThirty, $timeBetThirtyAndSixty, $timeMoreSixty)
     {
-        $query = "INSERT INTO " . $this->table .
+        $query = "INSERT INTO " . $this->searchMonitorTable .
             " (perday,bounceCount,bounceTotal,repeatCount,repeatTotal,sumPaceTime,sumVisits,timeLessFive,timeBetFiveAndTen,timeBetTenAndThirty,timeBetThirtyAndSixty,timeMoreSixty)" .
             " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
         $bind = array($perday, $bounceCount, $bounceTotal, $repeatCount, $repeatTotal,
@@ -334,9 +340,9 @@ class Model
         return true;
     }
 
-    public function getOneDayBounceDataFromDB($perDay)
+    public function getOneDayDataFromDB($perDay)
     {
-        return Db::fetchRow("SELECT * FROM " . $this->table . " WHERE perDay = '$perDay'");
+        return Db::fetchRow("SELECT * FROM " . $this->searchMonitorTable . " WHERE perDay = '$perDay'");
     }
 
     public function getBounceDataFromDB($startDate, $endDate)
@@ -361,14 +367,14 @@ class Model
 
     public function addBounceDataToDB($perDay, $bounceCount, $bounceTotal)
     {
-        $perDayData = $this->getOneDayBounceDataFromDB($perDay);
+        $perDayData = $this->getOneDayDataFromDB($perDay);
 
         if (empty($perDayData)) {
-            $query = "INSERT INTO " . $this->table . " (perday,bounceCount,bounceTotal) VALUES (?,?,?) ";
+            $query = "INSERT INTO " . $this->searchMonitorTable . " (perday,bounceCount,bounceTotal) VALUES (?,?,?) ";
             $bind = array($perDay, $bounceCount, $bounceTotal);
             Db::query($query, $bind);
         } else {
-            $query = "UPDATE " . $this->table . " SET bounceCount = ? , bounceTotal = ? WHERE perday = ? ";
+            $query = "UPDATE " . $this->searchMonitorTable . " SET bounceCount = ? , bounceTotal = ? WHERE perday = ? ";
             $bind = array($bounceCount, $bounceTotal, $perDay);
             Db::query($query, $bind);
         }
@@ -377,14 +383,14 @@ class Model
 
     public function addRepeatDataToDB($perDay, $repeatCount, $repeatTotal)
     {
-        $perDayData = $this->getOneDayBounceDataFromDB($perDay);
+        $perDayData = $this->getOneDayDataFromDB($perDay);
 
         if (empty($perDayData)) {
-            $query = "INSERT INTO " . $this->table . " (perday,repeatCount,repeatTotal) VALUES (?,?,?) ";
+            $query = "INSERT INTO " . $this->searchMonitorTable . " (perday,repeatCount,repeatTotal) VALUES (?,?,?) ";
             $bind = array($perDay, $repeatCount, $repeatTotal);
             Db::query($query, $bind);
         } else {
-            $query = "UPDATE " . $this->table . " SET repeatCount = ? , repeatTotal = ? WHERE perday = ? ";
+            $query = "UPDATE " . $this->searchMonitorTable . " SET repeatCount = ? , repeatTotal = ? WHERE perday = ? ";
             $bind = array($repeatCount, $repeatTotal, $perDay);
             Db::query($query, $bind);
         }
@@ -393,14 +399,14 @@ class Model
 
     public function addPaceTimeDataToDB($perDay, $sumPaceTime, $sumVisits)
     {
-        $perDayData = $this->getOneDayBounceDataFromDB($perDay);
+        $perDayData = $this->getOneDayDataFromDB($perDay);
 
         if (empty($perDayData)) {
-            $query = "INSERT INTO " . $this->table . " (perday,sumPaceTime,sumVisits) VALUES (?,?,?) ";
+            $query = "INSERT INTO " . $this->searchMonitorTable . " (perday,sumPaceTime,sumVisits) VALUES (?,?,?) ";
             $bind = array($perDay, $sumPaceTime, $sumVisits);
             Db::query($query, $bind);
         } else {
-            $query = "UPDATE " . $this->table . " SET sumPaceTime = ? , sumVisits = ? WHERE perday = ? ";
+            $query = "UPDATE " . $this->searchMonitorTable . " SET sumPaceTime = ? , sumVisits = ? WHERE perday = ? ";
             $bind = array($sumPaceTime, $sumVisits, $perDay);
             Db::query($query, $bind);
         }
@@ -409,14 +415,14 @@ class Model
 
     public function addPaceTimeDistributionDataToDB($perDay, $timeLessFive, $timeBetFiveAndTen, $timeBetTenAndThirty, $timeBetThirtyAndSixty, $timeMoreSixty)
     {
-        $perDayData = $this->getOneDayBounceDataFromDB($perDay);
+        $perDayData = $this->getOneDayDataFromDB($perDay);
 
         if (empty($perDayData)) {
-            $query = "INSERT INTO " . $this->table . " (perday,timeLessFive,timeBetFiveAndTen,timeBetTenAndThirty,timeBetThirtyAndSixty,timeMoreSixty) VALUES (?,?,?,?,?,?) ";
+            $query = "INSERT INTO " . $this->searchMonitorTable . " (perday,timeLessFive,timeBetFiveAndTen,timeBetTenAndThirty,timeBetThirtyAndSixty,timeMoreSixty) VALUES (?,?,?,?,?,?) ";
             $bind = array($perDay, $timeLessFive, $timeBetFiveAndTen, $timeBetTenAndThirty, $timeBetThirtyAndSixty, $timeMoreSixty);
             Db::query($query, $bind);
         } else {
-            $query = "UPDATE " . $this->table . " SET timeLessFive = ? , timeBetFiveAndTen = ? , timeBetTenAndThirty = ? , timeBetThirtyAndSixty = ? , timeMoreSixty = ? WHERE perday = ? ";
+            $query = "UPDATE " . $this->searchMonitorTable . " SET timeLessFive = ? , timeBetFiveAndTen = ? , timeBetTenAndThirty = ? , timeBetThirtyAndSixty = ? , timeMoreSixty = ? WHERE perday = ? ";
             $bind = array($timeLessFive, $timeBetFiveAndTen, $timeBetTenAndThirty, $timeBetThirtyAndSixty, $timeMoreSixty, $perDay);
             Db::query($query, $bind);
         }

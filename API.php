@@ -103,15 +103,14 @@ class API extends \Piwik\Plugin\API
         return $dataTable;
     }
 
-    private function addFilterToCleanVisitors(DataTable $dataTable, $idSite, $flat = false, $doNotFetchActions = false, $filterNow = true)
+    private function addFilterToCleanVisitors(DataTable $dataTable, $idSite, $reqKeyword, $flat = false, $doNotFetchActions = false, $filterNow = true)
     {
         $filter = 'queueFilter';
         if ($filterNow) {
             $filter = 'filter';
         }
 
-        $dataTable->$filter(function ($table) use ($idSite, $flat, $doNotFetchActions) {
-
+        $dataTable->$filter(function ($table) use ($idSite, $flat, $doNotFetchActions, $reqKeyword) {
             /** @var DataTable $table */
             $actionsLimit = (int)Config::getInstance()->General['visitor_log_maximum_actions_per_visit'];
 
@@ -130,7 +129,7 @@ class API extends \Piwik\Plugin\API
 
                 $visitorDetailsArray['actionDetails'] = array();
                 if (!$doNotFetchActions) {
-                    $visitorDetailsArray = Visitor::enrichVisitorArrayWithActions($visitorDetailsArray, $actionsLimit, $timezone);
+                    $visitorDetailsArray = Visitor::enrichVisitorArrayWithActions($visitorDetailsArray, $actionsLimit, $timezone, $reqKeyword);
                 }
 
                 if ($flat) {
@@ -143,7 +142,7 @@ class API extends \Piwik\Plugin\API
         });
     }
 
-    public function getLastVisitsDetails($idSite, $period = false, $date = false, $segment = false, $filterLimit = 100, $filterOffset = 0, $countVisitorsToFetch = false, $minTimestamp = false, $flat = false, $doNotFetchActions = false)
+    public function getLastVisitsDetails($idSite, $period = false, $date = false, $reqKeyword = '', $segment = false, $filterLimit = 100, $filterOffset = 0, $countVisitorsToFetch = false, $minTimestamp = false, $flat = false, $doNotFetchActions = false)
     {
         Piwik::checkUserHasViewAccess($idSite);
 
@@ -151,7 +150,7 @@ class API extends \Piwik\Plugin\API
 
         $dataTable = $this->loadLastVisitorDetailsFromDatabase($idSite, $period, $date, $segment, $filterOffset, $filterLimit, $minTimestamp, $filterSortOrder, $visitorId = false);
 
-        $this->addFilterToCleanVisitors($dataTable, $idSite, $flat, false);
+        $this->addFilterToCleanVisitors($dataTable, $idSite, $reqKeyword, $flat, false);
 
         $filterSortColumn = Common::getRequestVar('filter_sort_column', false, 'string');
 
@@ -159,14 +158,9 @@ class API extends \Piwik\Plugin\API
             $this->logger->warning('Sorting the API method "Live.getLastVisitDetails" by column is currently not supported. To avoid this warning remove the URL parameter "filter_sort_column" from your API request.');
         }
 
-        // Usually one would Sort a DataTable and then apply a Limit. In this case we apply a Limit first in SQL
-        // for fast offset usage see https://github.com/piwik/piwik/issues/7458. Sorting afterwards would lead to a
-        // wrong sorting result as it would only sort the limited results. Therefore we do not support a Sort for this
-        // API
-
         $dataTable->disableFilter('Sort');
 
-        $dataTable->disableFilter('Limit'); // limit is already applied here
+        $dataTable->disableFilter('Limit');
 
         return $dataTable;
     }
@@ -189,27 +183,10 @@ class API extends \Piwik\Plugin\API
         ));
     }
 
-    public function getVisitDetailsFromApiByPageCount($idSite, $period, $date, $segment = false, $filter_offset = 0, $filter_limit = 100)
+    public function getSearchDetailsFromApiByPage($idSite, $period, $date, $segment = false, $filter_offset = 0, $reqKeyword)
     {
-        $metatable = new DataTable();
-        $dateArray = $this->getDateArrayForEvolution($period, $date);
-        foreach ($dateArray as $day => $label) {
-            $data = $this->getLastVisitsDetails($idSite, $period, $day, $segment, $filter_limit, $filter_offset, false);
-            $metatable->addRowFromArray(array(Row::COLUMNS => array(
-                'label' => $label,
-                'count' => $data->getRowsCount()
-            )));
-
-            while ($data->getRowsCount() >= $filter_limit) {
-                $filter_offset = $filter_offset + $filter_limit;
-                $data = $this->getLastVisitsDetails($idSite, $period, $day, $segment, $filter_limit, $filter_offset, false);
-                $metatable->addRowFromArray(array(Row::COLUMNS => array(
-                    'label' => $label,
-                    'count' => $data->getRowsCount()
-                )));
-            }
-        }
-        return $metatable;
+        $filter_limit = 100;
+        return $this->getLastVisitsDetails($idSite, $period, $date, $reqKeyword, $segment, $filter_limit, $filter_offset, false);
     }
 
     /**
@@ -553,11 +530,11 @@ class API extends \Piwik\Plugin\API
     {
         $table = new DataTable();
         $filter_offset = 0;
-        $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset);
+        $data = $this->getSearchDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset, $reqKeyword);
         $this->getRelatedData($reqKeyword, $data, $table);
         while ($data->getRowsCount() >= 100) {
             $filter_offset = $filter_offset + 100;
-            $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset);
+            $data = $this->getSearchDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset, $reqKeyword);
             $this->getRelatedData($reqKeyword, $data, $table);
         }
         return $table;
@@ -723,6 +700,11 @@ class API extends \Piwik\Plugin\API
      */
     private function getStartDateAndEndDate($period, $day)
     {
+        if ($day == 'yesterday') {
+            $day = date('Y-m-d', strtotime("-1 days"));
+        } elseif ($day == 'today') {
+            $day = date('Y-m-d');
+        }
         $startDate = $day;
         $endDate = $day;
         if ($period == 'week') {
