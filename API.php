@@ -530,6 +530,7 @@ class API extends \Piwik\Plugin\API
     {
         $table = new DataTable();
         list($startDate, $endDate) = $this->getStartDateAndEndDate($period, $date);
+        $endDate = date('Y-m-d H:i:s e', strtotime($endDate."+1 days") - 1);
         $peopleInfo = $this->getModel()->queryActionsByKeywordAndDate($reqKeyword, $startDate, $endDate, $segment, "people");
         $groupInfo = $this->getModel()->queryActionsByKeywordAndDate($reqKeyword, $startDate, $endDate, $segment, "group");
         $contentInfo = $this->getModel()->queryActionsByKeywordAndDate($reqKeyword, $startDate, $endDate, $segment, "content");
