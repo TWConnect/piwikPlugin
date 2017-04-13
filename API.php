@@ -8,12 +8,9 @@
  */
 namespace Piwik\Plugins\SearchMonitor;
 
-use Piwik\Common;
 use Piwik\Config;
 use Piwik\DataTable;
 use Piwik\DataTable\Row;
-use Piwik\Piwik;
-use Piwik\Site;
 
 
 /**
@@ -23,6 +20,18 @@ use Piwik\Site;
  */
 class API extends \Piwik\Plugin\API
 {
+    const LessThan5 = 0;
+
+    const From5To10 = 1;
+
+    const From10To30 = 2;
+
+    const From30to60 = 3;
+
+    const MoreThan60 = 4;
+
+    const LimitNum = 100;
+
     private function getModel()
     {
         return new Model();
@@ -87,7 +96,7 @@ class API extends \Piwik\Plugin\API
      */
     public function getVisitDetailsFromApiByPage($idSite, $period, $date, $segment = false, $filter_offset = 0)
     {
-        $filter_limit = 100;
+        $filter_limit = self::LimitNum;
         return \Piwik\API\Request::processRequest('Live.getLastVisitsDetails', array(
             'idSite' => $idSite,
             'period' => $period,
@@ -124,8 +133,8 @@ class API extends \Piwik\Plugin\API
                     $filter_offset = 0;
                     $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
                     list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
-                    while ($data->getRowsCount() >= 100) {
-                        $filter_offset = $filter_offset + 100;
+                    while ($data->getRowsCount() >= self::LimitNum) {
+                        $filter_offset = $filter_offset + self::LimitNum;
                         $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
                         list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
                     }
@@ -186,15 +195,15 @@ class API extends \Piwik\Plugin\API
         $distributionData = $this->getDataOfPaceTimeOnSearchResultDistribution($idSite, $period, $date, $segment);
 
         $resultRow = $table->getRowFromLabel('0-5s');
-        $resultRow->setColumn('Count', $distributionData[0]);
+        $resultRow->setColumn('Count', $distributionData[self::LessThan5]);
         $resultRow = $table->getRowFromLabel('5-10s');
-        $resultRow->setColumn('Count', $distributionData[1]);
+        $resultRow->setColumn('Count', $distributionData[self::From5To10]);
         $resultRow = $table->getRowFromLabel('10-30s');
-        $resultRow->setColumn('Count', $distributionData[2]);
+        $resultRow->setColumn('Count', $distributionData[self::From10To30]);
         $resultRow = $table->getRowFromLabel('30-60s');
-        $resultRow->setColumn('Count', $distributionData[3]);
+        $resultRow->setColumn('Count', $distributionData[self::From30to60]);
         $resultRow = $table->getRowFromLabel('60s above');
-        $resultRow->setColumn('Count', $distributionData[4]);
+        $resultRow->setColumn('Count', $distributionData[self::MoreThan60]);
 
         return $table;
     }
@@ -246,8 +255,8 @@ class API extends \Piwik\Plugin\API
                 $filter_offset = 0;
                 $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
                 $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
-                while ($data->getRowsCount() >= 100) {
-                    $filter_offset = $filter_offset + 100;
+                while ($data->getRowsCount() >= self::LimitNum) {
+                    $filter_offset = $filter_offset + self::LimitNum;
                     $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
                     $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
                 }
@@ -385,8 +394,8 @@ class API extends \Piwik\Plugin\API
                 $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
                 list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
 
-                while ($data->getRowsCount() >= 100) {
-                    $filter_offset = $filter_offset + 100;
+                while ($data->getRowsCount() >= self::LimitNum) {
+                    $filter_offset = $filter_offset + self::LimitNum;
                     $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
                     list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
                 }
@@ -408,7 +417,7 @@ class API extends \Piwik\Plugin\API
             if ($totalSearchCount == 0) {
                 $bounceRate = 0;
             } else {
-                $bounceRate = ($bouncedSearchCount * 100) / ($totalSearchCount * 1.0);
+                $bounceRate = ($bouncedSearchCount * self::LimitNum) / ($totalSearchCount * 1.0);
             }
             $metatable->addRowFromArray(array(Row::COLUMNS => array(
                 'label' => $label,
@@ -439,7 +448,7 @@ class API extends \Piwik\Plugin\API
     {
         $table = new DataTable();
         list($startDate, $endDate) = $this->getStartDateAndEndDate($period, $date);
-        $endDate = date('Y-m-d H:i:s e', strtotime($endDate."+1 days") - 1);
+        $endDate = date('Y-m-d H:i:s e', strtotime($endDate . "+1 days") - 1);
         $peopleInfo = $this->getModel()->queryActionsByKeywordAndDate($reqKeyword, $startDate, $endDate, $segment, "people");
         $groupInfo = $this->getModel()->queryActionsByKeywordAndDate($reqKeyword, $startDate, $endDate, $segment, "group");
         $contentInfo = $this->getModel()->queryActionsByKeywordAndDate($reqKeyword, $startDate, $endDate, $segment, "content");
@@ -497,15 +506,15 @@ class API extends \Piwik\Plugin\API
                     $visitTime = $action['timeSpent'];
 
                     if (0 <= $visitTime && $visitTime < 5) {
-                        $distributionData[0]++;
+                        $distributionData[self::LessThan5]++;
                     } elseif (5 <= $visitTime && $visitTime < 10) {
-                        $distributionData[1]++;
+                        $distributionData[self::From5To10]++;
                     } elseif (10 <= $visitTime && $visitTime < 30) {
-                        $distributionData[2]++;
+                        $distributionData[self::From10To30]++;
                     } elseif (30 <= $visitTime && $visitTime < 60) {
-                        $distributionData[3]++;
+                        $distributionData[self::From30to60]++;
                     } elseif (60 <= $visitTime) {
-                        $distributionData[4]++;
+                        $distributionData[self::MoreThan60]++;
                     }
                     unset($isResult[$key]);
                 }
@@ -579,7 +588,7 @@ class API extends \Piwik\Plugin\API
         }
         return array($sumVisits, $sumPaceTime);
     }
-    
+
     /**
      * @param $period
      * @param $day
@@ -621,11 +630,11 @@ class API extends \Piwik\Plugin\API
         $distributionData = array();
         $periodData = $this->getModel()->getPaceTimeDistributionDataFromDB($startDate, $endDate);
 
-        $distributionData[0] = $periodData['SUM(timeLessFive)'];
-        $distributionData[1] = $periodData['SUM(timeBetFiveAndTen)'];
-        $distributionData[2] = $periodData['SUM(timeBetTenAndThirty)'];
-        $distributionData[3] = $periodData['SUM(timeBetThirtyAndSixty)'];
-        $distributionData[4] = $periodData['SUM(timeMoreSixty)'];
+        $distributionData[self::LessThan5] = $periodData['SUM(timeLessFive)'];
+        $distributionData[self::From5To10] = $periodData['SUM(timeBetFiveAndTen)'];
+        $distributionData[self::From10To30] = $periodData['SUM(timeBetTenAndThirty)'];
+        $distributionData[self::From30to60] = $periodData['SUM(timeBetThirtyAndSixty)'];
+        $distributionData[self::MoreThan60] = $periodData['SUM(timeMoreSixty)'];
         return $distributionData;
     }
 
@@ -640,28 +649,28 @@ class API extends \Piwik\Plugin\API
     private function calculateDailyDistributionData($idSite, $period, $date, $segment)
     {
         $distributionData = $this->getPaceTimeDistributionFromDB($date, $date);
-        if ($distributionData[0] == null || $distributionData[1] == null ||
-            $distributionData[2] == null || $distributionData[3] == null ||
-            $distributionData[4] == null
+        if ($distributionData[self::LessThan5] == null || $distributionData[self::From5To10] == null ||
+            $distributionData[self::From10To30] == null || $distributionData[self::From30to60] == null ||
+            $distributionData[self::MoreThan60] == null
         ) {
-            $distributionData [0] = 0;
-            $distributionData [1] = 0;
-            $distributionData [2] = 0;
-            $distributionData [3] = 0;
-            $distributionData [4] = 0;
+            $distributionData [self::LessThan5] = 0;
+            $distributionData [self::From5To10] = 0;
+            $distributionData [self::From10To30] = 0;
+            $distributionData [self::From30to60] = 0;
+            $distributionData [self::MoreThan60] = 0;
 
             $filter_offset = 0;
 
             $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset);
             $distributionData = $this->getAvgTimeOnPageDistribution($data, $distributionData);
-            while ($data->getRowsCount() >= 100) {
-                $filter_offset = $filter_offset + 100;
+            while ($data->getRowsCount() >= self::LimitNum) {
+                $filter_offset = $filter_offset + self::LimitNum;
                 $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $date, $segment, $filter_offset);
                 $distributionData = $this->getAvgTimeOnPageDistribution($data, $distributionData);
             }
 
-            $this->getModel()->addPaceTimeDistributionDataToDB($date, $distributionData[0], $distributionData[1],
-                $distributionData[2], $distributionData[3], $distributionData[4]);
+            $this->getModel()->addPaceTimeDistributionDataToDB($date, $distributionData[self::LessThan5], $distributionData[self::From5To10],
+                $distributionData[self::From10To30], $distributionData[self::From30to60], $distributionData[self::MoreThan60]);
 
         }
 
