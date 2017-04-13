@@ -20,6 +20,8 @@ class Model
     private static $searchMonitor = 'searchmonitor';
     private $searchMonitorTable;
 
+    const InitDate = '2017-03-01';
+
     public function __construct()
     {
         $this->searchMonitorTable = Common::prefixTable(self::$searchMonitor);
@@ -107,15 +109,18 @@ class Model
     public function addBounceDataToDB($perDay, $bounceCount, $bounceTotal)
     {
         $perDayData = $this->getOneDayDataFromDB($perDay);
+        if ($perDay >= self::InitDate) {
+            if (empty($perDayData)) {
 
-        if (empty($perDayData)) {
-            $query = "INSERT INTO " . $this->searchMonitorTable . " (perday,bounceCount,bounceTotal) VALUES (?,?,?) ";
-            $bind = array($perDay, $bounceCount, $bounceTotal);
-            Db::query($query, $bind);
-        } else {
-            $query = "UPDATE " . $this->searchMonitorTable . " SET bounceCount = ? , bounceTotal = ? WHERE perday = ? ";
-            $bind = array($bounceCount, $bounceTotal, $perDay);
-            Db::query($query, $bind);
+                $query = "INSERT INTO " . $this->searchMonitorTable . " (perday,bounceCount,bounceTotal) VALUES (?,?,?) ";
+                $bind = array($perDay, $bounceCount, $bounceTotal);
+                Db::query($query, $bind);
+
+            } else {
+                $query = "UPDATE " . $this->searchMonitorTable . " SET bounceCount = ? , bounceTotal = ? WHERE perday = ? ";
+                $bind = array($bounceCount, $bounceTotal, $perDay);
+                Db::query($query, $bind);
+            }
         }
 
     }
@@ -123,15 +128,16 @@ class Model
     public function addRepeatDataToDB($perDay, $repeatCount, $repeatTotal)
     {
         $perDayData = $this->getOneDayDataFromDB($perDay);
-
-        if (empty($perDayData)) {
-            $query = "INSERT INTO " . $this->searchMonitorTable . " (perday,repeatCount,repeatTotal) VALUES (?,?,?) ";
-            $bind = array($perDay, $repeatCount, $repeatTotal);
-            Db::query($query, $bind);
-        } else {
-            $query = "UPDATE " . $this->searchMonitorTable . " SET repeatCount = ? , repeatTotal = ? WHERE perday = ? ";
-            $bind = array($repeatCount, $repeatTotal, $perDay);
-            Db::query($query, $bind);
+        if ($perDay >= self::InitDate) {
+            if (empty($perDayData)) {
+                $query = "INSERT INTO " . $this->searchMonitorTable . " (perday,repeatCount,repeatTotal) VALUES (?,?,?) ";
+                $bind = array($perDay, $repeatCount, $repeatTotal);
+                Db::query($query, $bind);
+            } else {
+                $query = "UPDATE " . $this->searchMonitorTable . " SET repeatCount = ? , repeatTotal = ? WHERE perday = ? ";
+                $bind = array($repeatCount, $repeatTotal, $perDay);
+                Db::query($query, $bind);
+            }
         }
 
     }
@@ -139,15 +145,16 @@ class Model
     public function addPaceTimeDataToDB($perDay, $sumPaceTime, $sumVisits)
     {
         $perDayData = $this->getOneDayDataFromDB($perDay);
-
-        if (empty($perDayData)) {
-            $query = "INSERT INTO " . $this->searchMonitorTable . " (perday,sumPaceTime,sumVisits) VALUES (?,?,?) ";
-            $bind = array($perDay, $sumPaceTime, $sumVisits);
-            Db::query($query, $bind);
-        } else {
-            $query = "UPDATE " . $this->searchMonitorTable . " SET sumPaceTime = ? , sumVisits = ? WHERE perday = ? ";
-            $bind = array($sumPaceTime, $sumVisits, $perDay);
-            Db::query($query, $bind);
+        if ($perDay >= self::InitDate) {
+            if (empty($perDayData)) {
+                $query = "INSERT INTO " . $this->searchMonitorTable . " (perday,sumPaceTime,sumVisits) VALUES (?,?,?) ";
+                $bind = array($perDay, $sumPaceTime, $sumVisits);
+                Db::query($query, $bind);
+            } else {
+                $query = "UPDATE " . $this->searchMonitorTable . " SET sumPaceTime = ? , sumVisits = ? WHERE perday = ? ";
+                $bind = array($sumPaceTime, $sumVisits, $perDay);
+                Db::query($query, $bind);
+            }
         }
 
     }
@@ -155,15 +162,16 @@ class Model
     public function addPaceTimeDistributionDataToDB($perDay, $timeLessFive, $timeBetFiveAndTen, $timeBetTenAndThirty, $timeBetThirtyAndSixty, $timeMoreSixty)
     {
         $perDayData = $this->getOneDayDataFromDB($perDay);
-
-        if (empty($perDayData)) {
-            $query = "INSERT INTO " . $this->searchMonitorTable . " (perday,timeLessFive,timeBetFiveAndTen,timeBetTenAndThirty,timeBetThirtyAndSixty,timeMoreSixty) VALUES (?,?,?,?,?,?) ";
-            $bind = array($perDay, $timeLessFive, $timeBetFiveAndTen, $timeBetTenAndThirty, $timeBetThirtyAndSixty, $timeMoreSixty);
-            Db::query($query, $bind);
-        } else {
-            $query = "UPDATE " . $this->searchMonitorTable . " SET timeLessFive = ? , timeBetFiveAndTen = ? , timeBetTenAndThirty = ? , timeBetThirtyAndSixty = ? , timeMoreSixty = ? WHERE perday = ? ";
-            $bind = array($timeLessFive, $timeBetFiveAndTen, $timeBetTenAndThirty, $timeBetThirtyAndSixty, $timeMoreSixty, $perDay);
-            Db::query($query, $bind);
+        if ($perDay >= self::InitDate) {
+            if (empty($perDayData)) {
+                $query = "INSERT INTO " . $this->searchMonitorTable . " (perday,timeLessFive,timeBetFiveAndTen,timeBetTenAndThirty,timeBetThirtyAndSixty,timeMoreSixty) VALUES (?,?,?,?,?,?) ";
+                $bind = array($perDay, $timeLessFive, $timeBetFiveAndTen, $timeBetTenAndThirty, $timeBetThirtyAndSixty, $timeMoreSixty);
+                Db::query($query, $bind);
+            } else {
+                $query = "UPDATE " . $this->searchMonitorTable . " SET timeLessFive = ? , timeBetFiveAndTen = ? , timeBetTenAndThirty = ? , timeBetThirtyAndSixty = ? , timeMoreSixty = ? WHERE perday = ? ";
+                $bind = array($timeLessFive, $timeBetFiveAndTen, $timeBetTenAndThirty, $timeBetThirtyAndSixty, $timeMoreSixty, $perDay);
+                Db::query($query, $bind);
+            }
         }
 
     }
