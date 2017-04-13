@@ -131,7 +131,7 @@ class API extends \Piwik\Plugin\API
                 $sumPaceTime = $periodData['SUM(sumPaceTime)'];
                 $sumVisits = $periodData['SUM(sumVisits)'];
 
-                if ($period == 'day' && ($sumPaceTime == null || $sumVisits == null)) {
+                if ($period == 'day' && ($sumPaceTime == null || $sumVisits == null || $endDate == date('Y-m-d'))) {
                     $sumPaceTime = 0;
                     $sumVisits = 0;
                     if (strpos($date, ',') !== false) {
@@ -261,7 +261,7 @@ class API extends \Piwik\Plugin\API
         $repeatingSearchCount = $periodData['SUM(repeatCount)'];
         $totalSearchCount = $periodData['SUM(repeatTotal)'];
 
-        if ($period == 'day' && ($repeatingSearchCount == null || $totalSearchCount == null)) {
+        if ($period == 'day' && ($repeatingSearchCount == null || $totalSearchCount == null || $endDate == date('Y-m-d'))) {
             $repeatSearchRecords = array();
             if (strpos($date, ',') !== false) {
                 $filter_offset = 0;
@@ -404,7 +404,7 @@ class API extends \Piwik\Plugin\API
         $bouncedSearchCount = $periodData['SUM(bounceCount)'];
         $totalSearchCount = $periodData['SUM(bounceTotal)'];
 
-        if ($period == 'day' && ($bouncedSearchCount == null || $totalSearchCount == null)) {
+        if ($period == 'day' && ($bouncedSearchCount == null || $totalSearchCount == null || $endDate == date('Y-m-d'))) {
             $bouncedSearchCount = 0;
             $totalSearchCount = 0;
             if (strpos($date, ',') !== false) {
@@ -672,7 +672,7 @@ class API extends \Piwik\Plugin\API
         $distributionData = $this->getPaceTimeDistributionFromDB($date, $date);
         if ($distributionData[self::LessThan5] == null || $distributionData[self::From5To10] == null ||
             $distributionData[self::From10To30] == null || $distributionData[self::From30to60] == null ||
-            $distributionData[self::MoreThan60] == null
+            $distributionData[self::MoreThan60] == null || $date == date('Y-m-d')
         ) {
             $distributionData [self::LessThan5] = 0;
             $distributionData [self::From5To10] = 0;
