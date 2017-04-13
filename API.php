@@ -80,91 +80,6 @@ class API extends \Piwik\Plugin\API
         return $dateArray;
     }
 
-    private function loadLastVisitorDetailsFromDatabase($idSite, $period, $date, $segment = false, $offset = 0, $limit = 100, $minTimestamp = false, $filterSortOrder = false, $visitorId = false)
-    {
-        $model = new Model();
-        $data = $model->queryLogVisits($idSite, $period, $date, $segment, $offset, $limit, $visitorId, $minTimestamp, $filterSortOrder);
-        return $this->makeVisitorTableFromArray($data);
-    }
-
-    private function makeVisitorTableFromArray($data)
-    {
-        $dataTable = new DataTable();
-        $dataTable->addRowsFromSimpleArray($data);
-
-        if (!empty($data[0])) {
-            $columnsToNotAggregate = array_map(function () {
-                return 'skip';
-            }, $data[0]);
-
-            $dataTable->setMetadata(DataTable::COLUMN_AGGREGATION_OPS_METADATA_NAME, $columnsToNotAggregate);
-        }
-
-        return $dataTable;
-    }
-
-    private function addFilterToCleanVisitors(DataTable $dataTable, $idSite, $reqKeyword, $flat = false, $doNotFetchActions = false, $filterNow = true)
-    {
-        $filter = 'queueFilter';
-        if ($filterNow) {
-            $filter = 'filter';
-        }
-
-        $dataTable->$filter(function ($table) use ($idSite, $flat, $doNotFetchActions, $reqKeyword) {
-            /** @var DataTable $table */
-            $actionsLimit = (int)Config::getInstance()->General['visitor_log_maximum_actions_per_visit'];
-
-            $visitorFactory = new VisitorFactory();
-            $website = new Site($idSite);
-            $timezone = $website->getTimezone();
-
-            // live api is not summable, prevents errors like "Unexpected ECommerce status value"
-            $table->deleteRow(DataTable::ID_SUMMARY_ROW);
-
-            foreach ($table->getRows() as $visitorDetailRow) {
-                $visitorDetailsArray = Visitor::cleanVisitorDetails($visitorDetailRow->getColumns());
-
-                $visitor = $visitorFactory->create($visitorDetailsArray);
-                $visitorDetailsArray = $visitor->getAllVisitorDetails();
-
-                $visitorDetailsArray['actionDetails'] = array();
-                if (!$doNotFetchActions) {
-                    $visitorDetailsArray = Visitor::enrichVisitorArrayWithActions($visitorDetailsArray, $actionsLimit, $timezone, $reqKeyword);
-                }
-
-                if ($flat) {
-                    $visitorDetailsArray = Visitor::flattenVisitorDetailsArray($visitorDetailsArray);
-                }
-
-                $visitorDetailRow->setColumns($visitorDetailsArray);
-            }
-
-        });
-    }
-
-    public function getLastVisitsDetails($idSite, $period = false, $date = false, $reqKeyword = '', $segment = false, $filterLimit = 100, $filterOffset = 0, $countVisitorsToFetch = false, $minTimestamp = false, $flat = false, $doNotFetchActions = false)
-    {
-        Piwik::checkUserHasViewAccess($idSite);
-
-        $filterSortOrder = Common::getRequestVar('filter_sort_order', false, 'string');
-
-        $dataTable = $this->loadLastVisitorDetailsFromDatabase($idSite, $period, $date, $segment, $filterOffset, $filterLimit, $minTimestamp, $filterSortOrder, $visitorId = false);
-
-        $this->addFilterToCleanVisitors($dataTable, $idSite, $reqKeyword, $flat, false);
-
-        $filterSortColumn = Common::getRequestVar('filter_sort_column', false, 'string');
-
-        if ($filterSortColumn) {
-            $this->logger->warning('Sorting the API method "Live.getLastVisitDetails" by column is currently not supported. To avoid this warning remove the URL parameter "filter_sort_column" from your API request.');
-        }
-
-        $dataTable->disableFilter('Sort');
-
-        $dataTable->disableFilter('Limit');
-
-        return $dataTable;
-    }
-
     /**
      * @param $idSite
      * @param $day
@@ -181,12 +96,6 @@ class API extends \Piwik\Plugin\API
             'filter_offset' => $filter_offset,
             'filter_limit' => $filter_limit
         ));
-    }
-
-    public function getSearchDetailsFromApiByPage($idSite, $period, $date, $segment = false, $filter_offset = 0, $reqKeyword)
-    {
-        $filter_limit = 100;
-        return $this->getLastVisitsDetails($idSite, $period, $date, $reqKeyword, $segment, $filter_limit, $filter_offset, false);
     }
 
     /**
@@ -670,39 +579,7 @@ class API extends \Piwik\Plugin\API
         }
         return array($sumVisits, $sumPaceTime);
     }
-
-    /**
-     * @param $reqKeyword
-     * @param $data
-     * @param $table
-     */
-    private function getRelatedData($reqKeyword, $data, $table)
-    {
-        foreach ($data as $row) {
-            $detail = $row->getColumn('actionDetails');
-            foreach ($detail as $action) {
-
-                if ($action['type'] == 'event' && $action['eventCategory'] == 'searchResult'
-                    && $action['eventName'] != "null"
-                ) {
-
-                    $keyword = $action['eventAction'];
-                    if ($reqKeyword != null && $reqKeyword == $keyword) {
-                        $srcURL = $action['eventName'];
-                        $type = 'content';
-                        if (preg_match("/^[^\/]+\/\/[^\/]+\/groups\/[^\/]+$/", $srcURL)) {
-                            $type = 'group';
-                        } else if (preg_match("/^[^\/]+\/\/[^\/]+\/people\/[^\/]+$/", $srcURL)) {
-                            $type = 'people';
-                        }
-                        $table->addRowFromArray(array(Row::COLUMNS => array(
-                            'url' => $srcURL, 'type' => $type)));
-                    }
-                }
-            }
-        }
-    }
-
+    
     /**
      * @param $period
      * @param $day
