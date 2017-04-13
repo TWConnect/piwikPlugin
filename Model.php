@@ -28,8 +28,9 @@ class Model
     public function queryActionsByKeywordAndDate($keyword, $startDate, $endDate, $segment, $type)
     {
         $customVariable = "";
-        if ($segment != ""){
+        if ($segment != "") {
             $spiltSegment = explode('%3D%3D', $segment);
+            $spiltSegment[1] = str_replace("%2520", " ", $spiltSegment[1]);
             if ($spiltSegment[0] == "customVariableValue5") {
                 $customVariable = "AND log_visit.custom_var_v5 = '$spiltSegment[1]'";
             } elseif ($spiltSegment[0] == "customVariableValue1") {
@@ -37,13 +38,13 @@ class Model
             }
         }
 
-        $typeInfo ="";
+        $typeInfo = "";
         if ($type == "people") {
-            $typeInfo="AND  log_action_title.name LIKE '%/people/%' AND log_action_title.name NOT LIKE '%/people/%/%'";
-        }elseif ($type == "group") {
-            $typeInfo="AND  log_action_title.name LIKE '%/group/%' AND log_action_title.name NOT LIKE '%/group/%/%'";
-        }elseif ($type == "content"){
-            $typeInfo=" AND
+            $typeInfo = "AND  log_action_title.name LIKE '%/people/%' AND log_action_title.name NOT LIKE '%/people/%/%'";
+        } elseif ($type == "group") {
+            $typeInfo = "AND  log_action_title.name LIKE '%/group/%' AND log_action_title.name NOT LIKE '%/group/%/%'";
+        } elseif ($type == "content") {
+            $typeInfo = " AND
             (
                 log_action_title.name NOT LIKE '%/groups/%' 
                 AND  log_action_title.name != 'null'
@@ -70,14 +71,13 @@ class Model
 				AND log_link_visit_action.server_time >='$startDate' 
 				AND log_link_visit_action.server_time <='$endDate'
 				AND log_action_event_action.name = '$keyword' "
-            .$typeInfo." 
+            . $typeInfo . " 
 				GROUP BY log_action_title.name
 				ORDER BY count(*) DESC 
 				LIMIT 10";
         return Db::fetchAll($sql);
 
     }
-    
 
     public function getOneDayDataFromDB($perDay)
     {
