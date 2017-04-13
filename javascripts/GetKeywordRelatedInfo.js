@@ -23,6 +23,10 @@ $(document).ready(function () {
 
     function getKeywordRelatedInfo(event) {
         var span = jQuery(event.currentTarget.cells[0]).find('span .value');
+        $('#keyword-list .dataTable > div.dataTableWrapper > table > tbody > tr td').css("background-color", "white")
+        $(event.currentTarget.cells[0]).css("background-color", "#ddd");
+        $(event.currentTarget.cells[1]).css("background-color", "#ddd");
+        $("#loadingNow").show();
         keyword = span.text();
         var ajaxRequest = new ajaxHelper();
         ajaxRequest.setLoadingElement('#ajaxLoadingMyTWKeywords');
@@ -37,7 +41,7 @@ $(document).ready(function () {
                 var result = [];
                 var data = JSON.parse(response);
                 data.forEach(function (item) {
-                    console.log(item);
+                    // console.log(item);
                     result.push([item.url, item.type, item.count]);
                 });
 
@@ -57,6 +61,7 @@ $(document).ready(function () {
     }
 
     function showRelatedInfo(result) {
+        $("#loadingNow").hide();
         $('#content-url-list').append("<tr><td>CONTENT</td><td>COUNT</td></tr>");
         $('#group-url-list').append("<tr><td>GROUP</td><td>COUNT</td></tr>");
         $('#people-url-list').append("<tr><td>PEOPLE</td><td>COUNT</td></tr>");
