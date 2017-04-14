@@ -26,7 +26,9 @@ $(document).ready(function () {
         $('#keyword-list .dataTable > div.dataTableWrapper > table > tbody > tr td').css("background-color", "white")
         $(event.currentTarget.cells[0]).css("background-color", "#ddd");
         $(event.currentTarget.cells[1]).css("background-color", "#ddd");
-        $("#loadingNow").show();
+        $('.info').css('background','url(https://i.stack.imgur.com/kOnzy.gif) 50% no-repeat');
+        $('.info').css('background-size','100px');
+        clearTable();
         keyword = span.text();
         var ajaxRequest = new ajaxHelper();
         ajaxRequest.setLoadingElement('#ajaxLoadingMyTWKeywords');
@@ -45,8 +47,6 @@ $(document).ready(function () {
                     result.push([item.url, item.type, item.count]);
                 });
 
-                clearTable();
-
                 showRelatedInfo(result);
             }
         );
@@ -61,7 +61,8 @@ $(document).ready(function () {
     }
 
     function showRelatedInfo(result) {
-        $("#loadingNow").hide();
+        clearTable();
+        $('.info').css('background','white');
         $('#content-url-list').append("<tr><td>CONTENT</td><td>COUNT</td></tr>");
         $('#group-url-list').append("<tr><td>GROUP</td><td>COUNT</td></tr>");
         $('#people-url-list').append("<tr><td>PEOPLE</td><td>COUNT</td></tr>");

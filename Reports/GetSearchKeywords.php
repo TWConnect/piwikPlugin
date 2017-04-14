@@ -62,7 +62,7 @@ class GetSearchKeywords extends Base
     {
         if (!empty($this->dimension)) {
             $view->config->addTranslations(array('label' => $this->dimension->getName(),
-                'nb_visits' => Piwik::translate('SearchMonitor_SearchCount')));
+                'nb_visits' => Piwik::translate('SearchMonitor_SearchVisitor')));
         }
 
         // $view->config->show_search = false;
