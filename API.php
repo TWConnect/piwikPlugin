@@ -56,7 +56,7 @@ class API extends \Piwik\Plugin\API
             $endDate = date('Y-m-d', strtotime($spiltDate[1]));
 
             if ($period == 'week') {
-                $startDate = date('Y-m-d', strtotime($endDate . ' - 70 days'));
+                $startDate = date('Y-m-d', strtotime($endDate . ' - 69 days'));
             } elseif ($period == 'month') {
                 $startDate = date('Y-m-01', strtotime($endDate . ' - 180 days'));
             }
@@ -123,35 +123,7 @@ class API extends \Piwik\Plugin\API
         $metatable = new DataTable();
 
         foreach ($dateArray as $day => $label) {
-            list($startDate, $endDate) = $this->getStartDateAndEndDate($period, $day);
-            if ($endDate < self::InitDate) {
-                $avgTimeOnPage = 0;
-            } else {
-                $periodData = $this->getModel()->getPaceTimeDataFromDB($startDate, $endDate);
-                $sumPaceTime = $periodData['SUM(sumPaceTime)'];
-                $sumVisits = $periodData['SUM(sumVisits)'];
-
-                if ($period == 'day' && ($sumPaceTime == null || $sumVisits == null || $endDate == date('Y-m-d'))) {
-                    $sumPaceTime = 0;
-                    $sumVisits = 0;
-                    if (strpos($date, ',') !== false) {
-                        $filter_offset = 0;
-                        $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
-                        list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
-                        while ($data->getRowsCount() >= self::LimitNum) {
-                            $filter_offset = $filter_offset + self::LimitNum;
-                            $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
-                            list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
-                        }
-                    }
-                    $this->getModel()->addPaceTimeDataToDB($day, $sumPaceTime, $sumVisits);
-                }
-
-                $avgTimeOnPage = 0;
-                if ($sumVisits > 0) {
-                    $avgTimeOnPage = $sumPaceTime / $sumVisits;
-                }
-            }
+            $avgTimeOnPage = $this->calculateAvgPaceTime($idSite, $period, $date, $segment, $day);
             $metatable->addRowFromArray(array(Row::COLUMNS => array(
                 'label' => $label, 'avg_time_on_page' => $avgTimeOnPage)));
         }
@@ -625,8 +597,8 @@ class API extends \Piwik\Plugin\API
         $startDate = $day;
         $endDate = $day;
         if ($period == 'week') {
-            $startDate = date('Y-m-d', strtotime($day . ' - 6 days'));
-            $endDate = date('Y-m-d', strtotime($day));
+            $startDate = date('Y-m-d', strtotime($day));
+            $endDate = date('Y-m-d', strtotime($day. ' + 6 days'));
             return array($startDate, $endDate);
         } elseif ($period == 'month') {
             $startDate = date('Y-m-01', strtotime($day));
@@ -696,6 +668,50 @@ class API extends \Piwik\Plugin\API
         }
 
         return $distributionData;
+    }
+
+    /**
+     * @param $idSite
+     * @param $period
+     * @param $date
+     * @param $segment
+     * @param $day
+     * @return float|int
+     */
+    public function calculateAvgPaceTime($idSite, $period, $date, $segment = false, $day)
+    {
+        list($startDate, $endDate) = $this->getStartDateAndEndDate($period, $day);
+        if ($endDate < self::InitDate) {
+            $avgTimeOnPage = 0;
+            return $avgTimeOnPage;
+        } else {
+            $periodData = $this->getModel()->getPaceTimeDataFromDB($startDate, $endDate);
+            $sumPaceTime = $periodData['SUM(sumPaceTime)'];
+            $sumVisits = $periodData['SUM(sumVisits)'];
+
+            if ($period == 'day' && ($sumPaceTime == null || $sumVisits == null || $endDate == date('Y-m-d'))) {
+                $sumPaceTime = 0;
+                $sumVisits = 0;
+                if (strpos($date, ',') !== false) {
+                    $filter_offset = 0;
+                    $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
+                    list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
+                    while ($data->getRowsCount() >= self::LimitNum) {
+                        $filter_offset = $filter_offset + self::LimitNum;
+                        $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
+                        list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
+                    }
+                }
+                $this->getModel()->addPaceTimeDataToDB($day, $sumPaceTime, $sumVisits);
+            }
+
+            $avgTimeOnPage = 0;
+            if ($sumVisits > 0) {
+                $avgTimeOnPage = $sumPaceTime / $sumVisits;
+                return $avgTimeOnPage;
+            }
+            return $avgTimeOnPage;
+        }
     }
 
 }
