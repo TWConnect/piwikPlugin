@@ -123,7 +123,7 @@ class API extends \Piwik\Plugin\API
         $metatable = new DataTable();
 
         foreach ($dateArray as $day => $label) {
-            $avgTimeOnPage = $this->calculateAvgPaceTime($idSite, $period, $date, $segment, $day, false);
+            $avgTimeOnPage = $this->calculateAvgPaceTime($idSite, $period, $segment, $day, false);
             $metatable->addRowFromArray(array(Row::COLUMNS => array(
                 'label' => $label, 'avg_time_on_page' => $avgTimeOnPage)));
         }
@@ -201,7 +201,7 @@ class API extends \Piwik\Plugin\API
         $metatable = new DataTable();
 
         foreach ($dateArray as $day => $label) {
-            list($repeatingSearchCount, $totalSearchCount) = $this->getRepeatingSearchInfo($idSite, $period, $date, $segment, $day, false);
+            list($repeatingSearchCount, $totalSearchCount) = $this->getRepeatingSearchInfo($idSite, $period, $segment, $day, false);
 
             $metatable->addRowFromArray(array(Row::COLUMNS => array(
                 'label' => $label,
@@ -222,7 +222,7 @@ class API extends \Piwik\Plugin\API
      * @param bool $save
      * @return array
      */
-    public function getRepeatingSearchInfo($idSite, $period, $date, $segment = false, $day, $save = false)
+    public function getRepeatingSearchInfo($idSite, $period, $segment = false, $day, $save = false)
     {
         list($startDate, $endDate) = $this->getStartDateAndEndDate($period, $day);
         if ($endDate < self::InitDate) {
@@ -236,15 +236,13 @@ class API extends \Piwik\Plugin\API
 
         if ($period == 'day' && ($save == true || $repeatingSearchCount == null || $totalSearchCount == null || $endDate == date('Y-m-d'))) {
             $repeatSearchRecords = array();
-            if (strpos($date, ',') !== false) {
-                $filter_offset = 0;
+            $filter_offset = 0;
+            $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
+            $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
+            while ($data->getRowsCount() >= self::LimitNum) {
+                $filter_offset = $filter_offset + self::LimitNum;
                 $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
                 $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
-                while ($data->getRowsCount() >= self::LimitNum) {
-                    $filter_offset = $filter_offset + self::LimitNum;
-                    $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
-                    $repeatSearchRecords = $this->getRepeatSearchData($data, $repeatSearchRecords);
-                }
             }
 
             if (array_key_exists(1, $repeatSearchRecords)) {
@@ -287,7 +285,7 @@ class API extends \Piwik\Plugin\API
         $metatable = new DataTable();
 
         foreach ($dateArray as $day => $label) {
-            list($repeatingSearchCount, $totalSearchCount) = $this->getRepeatingSearchInfo($idSite, $period, $date, $segment, $day, false);
+            list($repeatingSearchCount, $totalSearchCount) = $this->getRepeatingSearchInfo($idSite, $period, $segment, $day, false);
             if ($totalSearchCount == 0) {
                 $repeatingRate = 0;
             } else {
@@ -365,7 +363,7 @@ class API extends \Piwik\Plugin\API
      * @param bool $save
      * @return array
      */
-    public function getBounceSearchInfo($idSite, $period, $date, $segment = false, $day, $save = false)
+    public function getBounceSearchInfo($idSite, $period, $segment = false, $day, $save = false)
     {
         list($startDate, $endDate) = $this->getStartDateAndEndDate($period, $day);
         if ($endDate < self::InitDate) {
@@ -381,16 +379,14 @@ class API extends \Piwik\Plugin\API
         if ($period == 'day' && ($save == true || $bouncedSearchCount == null || $totalSearchCount == null || $endDate == date('Y-m-d'))) {
             $bouncedSearchCount = 0;
             $totalSearchCount = 0;
-            if (strpos($date, ',') !== false) {
-                $filter_offset = 0;
+            $filter_offset = 0;
+            $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
+            list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
+
+            while ($data->getRowsCount() >= self::LimitNum) {
+                $filter_offset = $filter_offset + self::LimitNum;
                 $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
                 list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-
-                while ($data->getRowsCount() >= self::LimitNum) {
-                    $filter_offset = $filter_offset + self::LimitNum;
-                    $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
-                    list($totalSearchCount, $bouncedSearchCount) = $this->getBounceSearchData($data, $totalSearchCount, $bouncedSearchCount);
-                }
             }
 
             $this->getModel()->addBounceDataToDB($day, $bouncedSearchCount, $totalSearchCount);
@@ -405,7 +401,7 @@ class API extends \Piwik\Plugin\API
         $metatable = new DataTable();
 
         foreach ($dateArray as $day => $label) {
-            list($bouncedSearchCount, $totalSearchCount) = $this->getBounceSearchInfo($idSite, $period, $date, $segment, $day, false);
+            list($bouncedSearchCount, $totalSearchCount) = $this->getBounceSearchInfo($idSite, $period, $segment, $day, false);
             if ($totalSearchCount == 0) {
                 $bounceRate = 0;
             } else {
@@ -425,7 +421,7 @@ class API extends \Piwik\Plugin\API
         $dateArray = $this->getDateArrayForEvolution($period, $date);
         $metatable = new DataTable();
         foreach ($dateArray as $day => $label) {
-            list($bouncedSearchCount, $totalSearchCount) = $this->getBounceSearchInfo($idSite, $period, $date, $segment, $day, false);
+            list($bouncedSearchCount, $totalSearchCount) = $this->getBounceSearchInfo($idSite, $period, $segment, $day, false);
             $metatable->addRowFromArray(array(Row::COLUMNS => array(
                 'label' => $label,
                 'bounce_search_count' => $bouncedSearchCount,
@@ -682,7 +678,7 @@ class API extends \Piwik\Plugin\API
      * @param bool $save
      * @return float|int
      */
-    public function calculateAvgPaceTime($idSite, $period, $date, $segment = false, $day, $save = false)
+    public function calculateAvgPaceTime($idSite, $period, $segment = false, $day, $save = false)
     {
         list($startDate, $endDate) = $this->getStartDateAndEndDate($period, $day);
         if ($endDate < self::InitDate) {
@@ -696,15 +692,13 @@ class API extends \Piwik\Plugin\API
             if ($period == 'day' && ($save == true || $sumPaceTime == null || $sumVisits == null || $endDate == date('Y-m-d'))) {
                 $sumPaceTime = 0;
                 $sumVisits = 0;
-                if (strpos($date, ',') !== false) {
-                    $filter_offset = 0;
+                $filter_offset = 0;
+                $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
+                list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
+                while ($data->getRowsCount() >= self::LimitNum) {
+                    $filter_offset = $filter_offset + self::LimitNum;
                     $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
                     list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
-                    while ($data->getRowsCount() >= self::LimitNum) {
-                        $filter_offset = $filter_offset + self::LimitNum;
-                        $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
-                        list($sumVisits, $sumPaceTime) = $this->getAvgTimeOnPage($data, $sumVisits, $sumPaceTime);
-                    }
                 }
                 $this->getModel()->addPaceTimeDataToDB($day, $sumPaceTime, $sumVisits);
             }

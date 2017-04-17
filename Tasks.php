@@ -18,16 +18,15 @@ class Tasks extends \Piwik\Plugin\Tasks
     public function callSearchMonitor()
     {
         echo "call search monitor api";
-        $idSite = 3;
+        $idSite = 3;    // mythoughtworks id site is 3 in production piwik.
         $period = 'day';
-        $date = date('Y-m-d', strtotime("-1 days"));
-        $day = date('Y-m-d', strtotime("-1 days"));
+        $day = date('Y-m-d', strtotime("-1 days"));     // just add or update yesterday data into DB.
         $segment = false;
-        $save = true;
-        API::getInstance()->getRepeatingSearchInfo($idSite, $period, $date, $segment, $day, $save);
-        API::getInstance()->getBounceSearchInfo($idSite, $period, $date, $segment, $day, $save);
-        API::getInstance()->getDataOfPaceTimeOnSearchResultDistribution($idSite, $period, $date, $segment, $save);
-        API::getInstance()->calculateAvgPaceTime($idSite, $period, $date, $segment, $day, $save);
+        $save = true;   // force add data into DB.
+        API::getInstance()->getRepeatingSearchInfo($idSite, $period, $segment, $day, $save);
+        API::getInstance()->getBounceSearchInfo($idSite, $period, $segment, $day, $save);
+        API::getInstance()->getDataOfPaceTimeOnSearchResultDistribution($idSite, $period, $day, $segment, $save);
+        API::getInstance()->calculateAvgPaceTime($idSite, $period, $segment, $day, $save);
 
     }
 }
