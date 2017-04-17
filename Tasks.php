@@ -18,10 +18,16 @@ class Tasks extends \Piwik\Plugin\Tasks
     public function callSearchMonitor()
     {
         echo "call search monitor api";
-        API::getInstance()->getRepeatingSearchInfo(1, 'day', date('Y-m-d', strtotime("-1 days")), false, date('Y-m-d', strtotime("-1 days")), true);
-        API::getInstance()->getBounceSearchInfo(1, 'day', date('Y-m-d', strtotime("-1 days")), false, date('Y-m-d', strtotime("-1 days")), true);
-        API::getInstance()->getDataOfPaceTimeOnSearchResultDistribution(1, 'day', date('Y-m-d', strtotime("-1 days")), false, true);
-        API::getInstance()->calculateAvgPaceTime(1, 'day', date('Y-m-d', strtotime("-1 days")), false, date('Y-m-d', strtotime("-1 days")), true);
+        $idSite = 3;
+        $period = 'day';
+        $date = date('Y-m-d', strtotime("-1 days"));
+        $day = date('Y-m-d', strtotime("-1 days"));
+        $segment = false;
+        $save = true;
+        API::getInstance()->getRepeatingSearchInfo($idSite, $period, $date, $segment, $day, $save);
+        API::getInstance()->getBounceSearchInfo($idSite, $period, $date, $segment, $day, $save);
+        API::getInstance()->getDataOfPaceTimeOnSearchResultDistribution($idSite, $period, $date, $segment, $save);
+        API::getInstance()->calculateAvgPaceTime($idSite, $period, $date, $segment, $day, $save);
 
     }
 }
