@@ -234,7 +234,7 @@ class API extends \Piwik\Plugin\API
         $repeatingSearchCount = $periodData['SUM(repeatCount)'];
         $totalSearchCount = $periodData['SUM(repeatTotal)'];
 
-        if ($period == 'day' && ($save == true || $repeatingSearchCount == null || $totalSearchCount == null || $endDate == date('Y-m-d'))) {
+        if ($period == 'day' && ($save == true || $repeatingSearchCount == null || $totalSearchCount == null)) {
             $repeatSearchRecords = array();
             $filter_offset = 0;
             $data = $this->getVisitDetailsFromApiByPage($idSite, $period, $day, $segment, $filter_offset);
@@ -376,7 +376,7 @@ class API extends \Piwik\Plugin\API
         $bouncedSearchCount = $periodData['SUM(bounceCount)'];
         $totalSearchCount = $periodData['SUM(bounceTotal)'];
 
-        if ($period == 'day' && ($save == true || $bouncedSearchCount == null || $totalSearchCount == null || $endDate == date('Y-m-d'))) {
+        if ($period == 'day' && ($save == true || $bouncedSearchCount == null || $totalSearchCount == null)) {
             $bouncedSearchCount = 0;
             $totalSearchCount = 0;
             $filter_offset = 0;
@@ -643,7 +643,7 @@ class API extends \Piwik\Plugin\API
         $distributionData = $this->getPaceTimeDistributionFromDB($date, $date);
         if ($save == true || $distributionData[self::LessThan5] == null || $distributionData[self::From5To10] == null ||
             $distributionData[self::From10To30] == null || $distributionData[self::From30to60] == null ||
-            $distributionData[self::MoreThan60] == null || $date == date('Y-m-d')
+            $distributionData[self::MoreThan60] == null
         ) {
             $distributionData [self::LessThan5] = 0;
             $distributionData [self::From5To10] = 0;
@@ -689,7 +689,7 @@ class API extends \Piwik\Plugin\API
             $sumPaceTime = $periodData['SUM(sumPaceTime)'];
             $sumVisits = $periodData['SUM(sumVisits)'];
 
-            if ($period == 'day' && ($save == true || $sumPaceTime == null || $sumVisits == null || $endDate == date('Y-m-d'))) {
+            if ($period == 'day' && ($save == true || $sumPaceTime == null || $sumVisits == null)) {
                 $sumPaceTime = 0;
                 $sumVisits = 0;
                 $filter_offset = 0;
