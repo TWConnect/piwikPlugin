@@ -18,7 +18,6 @@ class Tasks extends \Piwik\Plugin\Tasks
 
     public function updateYesterdayData()
     {
-        echo "update yesterday data every day";
         $idSite = 3;    // mythoughtworks id site is 3 in production piwik.
         $period = 'day';
         $day = date('Y-m-d', strtotime("-1 days"));     // just add or update yesterday data into DB.
@@ -32,7 +31,6 @@ class Tasks extends \Piwik\Plugin\Tasks
 
     public function updateTodayData()
     {
-        echo "update today data every hour";
         $idSite = 3;    // mythoughtworks id site is 3 in production piwik.
         $period = 'day';
         $day = date('Y-m-d');     // just add or update today data into DB.
