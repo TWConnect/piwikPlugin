@@ -32,6 +32,7 @@ class Model
         $customVariable = "";
         if ($segment != "") {
             $spiltSegment = explode('%3D%3D', $segment);
+            // TODO: use bind parameters to avoid SQLi
             $spiltSegment[1] = str_replace("%2520", " ", $spiltSegment[1]);
             if ($spiltSegment[0] == "customVariableValue5") {
                 $customVariable = "AND log_visit.custom_var_v5 = '$spiltSegment[1]'";
@@ -56,6 +57,7 @@ class Model
             )";
         }
 
+        // TODO: use bind parameters to avoid SQLi
         $sql = "SELECT count(*) AS searchTimes,log_action_title.name AS pageTitle
 				FROM piwik_log_link_visit_action AS log_link_visit_action
 				    LEFT JOIN piwik_log_visit AS log_visit
@@ -83,26 +85,31 @@ class Model
 
     public function getOneDayDataFromDB($perDay)
     {
+        // TODO: use bind parameters to avoid SQLi
         return Db::fetchRow("SELECT * FROM " . $this->searchMonitorTable . " WHERE perDay = '$perDay'");
     }
 
     public function getBounceDataFromDB($startDate, $endDate)
     {
+        // TODO: use bind parameters to avoid SQLi
         return Db::fetchRow("SELECT SUM(bounceCount),SUM(bounceTotal) FROM piwik_searchmonitor WHERE perday >= '$startDate' AND perday <= '$endDate'");
     }
 
     public function getRepeatDataFromDB($startDate, $endDate)
     {
+        // TODO: use bind parameters to avoid SQLi
         return Db::fetchRow("SELECT SUM(repeatCount),SUM(repeatTotal) FROM piwik_searchmonitor WHERE perday >= '$startDate' AND perday <= '$endDate'");
     }
 
     public function getPaceTimeDataFromDB($startDate, $endDate)
     {
+        // TODO: use bind parameters to avoid SQLi
         return Db::fetchRow("SELECT SUM(sumPaceTime),SUM(sumVisits) FROM piwik_searchmonitor WHERE perday >= '$startDate' AND perday <= '$endDate'");
     }
 
     public function getPaceTimeDistributionDataFromDB($startDate, $endDate)
     {
+        // TODO: use bind parameters to avoid SQLi
         return Db::fetchRow("SELECT SUM(timeLessFive),SUM(timeBetFiveAndTen),SUM(timeBetTenAndThirty),SUM(timeBetThirtyAndSixty),SUM(timeMoreSixty) FROM piwik_searchmonitor WHERE perday >= '$startDate' AND perday <= '$endDate'");
     }
 
